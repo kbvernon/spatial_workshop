@@ -6,7 +6,7 @@
       "description": "Some additional details about the website",
       "author": [],
       "contents": "\r\n\r\n\r\n\r\n",
-      "last_modified": "2021-06-14T12:31:01-06:00"
+      "last_modified": "2021-06-14T12:41:56-06:00"
     },
     {
       "path": "index.html",
@@ -14,7 +14,7 @@
       "description": "A somewhat gentle introduction to working with spatial data in R.\n",
       "author": [],
       "contents": "\r\nSlides and worksheets for a three day workshop providing a somewhat gentle introduction to working with spatial data in R. The content and exercises are designed for 3 two-hour meetings.\r\nAll lessons are based on Lovelace, Nowosad, and Muenchow (2021) Geocomputation with R. It’s open-source and freely available here. This is an excellent resource, and something I find myself consulting quite often. Exercises are a mix of the exercises provided in that text and my own additions.\r\nOutline:\r\nDay One: Introduction\r\nInstallation and a brief overview of vector and raster data\r\nReading and writing spatial data\r\nProjecting spatial data\r\nReading: Ch 2, 6, and 7\r\n\r\nDay Two: Change, Subset, and Select Data\r\nAttribute data operations\r\nSpatial data operations\r\nReading: Ch 3 and 4\r\n\r\nDay Three: Change Geometry and Plot\r\nGeometry data operations\r\nMaking pretty maps\r\nReading: Ch 5 and 8\r\n\r\n",
-      "last_modified": "2021-06-14T12:31:03-06:00"
+      "last_modified": "2021-06-14T12:41:58-06:00"
     }
   ],
   "collections": []
