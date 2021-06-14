@@ -2,7 +2,7 @@ name: "spatial_workshop"
 title: "R spatial workshop"
 description: |
   R Spatial Workshop
-output_dir: "_site"
+output_dir: "docs"
 navbar:
   right:
     - text: "slides"
