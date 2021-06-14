@@ -1,0 +1,77 @@
+
+```{r, include = FALSE}
+library(dplyr)
+library(ggplot2)
+library(here)
+library(knitr)
+library(kableExtra)
+library(patchwork)
+library(raster)
+library(sf)
+library(viridis)
+```
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE,
+                      error = TRUE,
+                      collapse = TRUE, # code and output in same block
+                      fig.align = "center",
+                      fig.retina = 2,
+                      fig.asp = 0.7)
+options(htmltools.dir.version = FALSE,
+        str = strOptions(vec.len = 2),
+        sf_max_print = 5)
+```
+
+```{r xaringan-themer, include = FALSE, warning = FALSE}
+library(xaringanthemer)
+style_duo_accent(
+  primary_color = "#5e5e5e",
+  secondary_color = "#CC0000",
+  colors = c(white = "#FFFFFF"),
+  inverse_header_color = "#FFFFFF",
+  code_font_google = google_font("Fira Mono"),
+  code_font_size = "0.8rem",
+  header_h1_font_size = "45px",
+  header_h2_font_size = "35px",
+  header_h3_font_size = "20px"
+)
+```
+
+```{r xaringan-animate-css, echo = FALSE}
+library(xaringanExtra)
+use_animate_css()
+```
+
+```{r xaringan-tile-view, echo=FALSE}
+xaringanExtra::use_tile_view()
+```
+
+```{css, echo = FALSE}
+.pull-lleft {
+  float: left;
+  width: 15%;
+}
+.pull-lright {
+  float: right;
+  width: 84%;
+}
+.pull-lright ~ * {
+  clear: both;
+}
+
+.pull-aleft {
+  float: left;
+  width: 45%;
+}
+.pull-aright {
+  float: right;
+  width: 54%;
+}
+.pull-aright ~ * {
+  clear: both;
+}
+
+```

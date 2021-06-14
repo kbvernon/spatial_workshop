@@ -1,0 +1,654 @@
+
+---
+title: "Spatial Data in R"
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: [xaringan-themer.css, custom_style.css]
+    nature:
+      highlightStyle: magula
+      highlightLines: TRUE
+      countIncrementalSlides: TRUE
+      ratio: '16:9'
+---
+
+```{r, echo = FALSE, child = here::here("lessons/before_chunk.Rmd")}
+```
+
+## Outline
+
+1. Setup
+2. Spatial Data Models
+2. Coordinate Reference Systems
+2. Simple Features (`sf`)
+2. Rasters
+2. Projecting
+2. Reading and Writing
+
+---
+
+## Setup
+
+--
+* Create R project folder  
+
+--
+* Add _data_, _gis_, and _R_ folders  
+
+--
+* Install packages  
+
+```{r, eval = FALSE}
+# install packages
+install.packages(c("here", "raster", "spData", "sf"))
+
+install.packages("spDataLarge", 
+                 repos = "https://nowosad.github.io/drat/", 
+                 type = "source")
+
+
+# open libraries
+library(here)
+library(raster)
+library(spData)
+library(spDataLarge)
+library(sf)
+
+```
+
+
+---
+
+## Where is here?
+
+The `here` package is your friend.
+
+.pull-aleft[
+
+```{r, eval = FALSE}
+file.path()
+## character(0)
+
+here()
+## [1] "C:/Users/bob/stuff/spatial_workshop"
+```
+
+]
+
+.pull-aright[
+
+```{r, eval = FALSE}
+file.path("R", "script.R")
+## [1] "R/script.R"
+
+here("R", "script.R")
+## [1] "C:/Users/bob/stuff/spatial_workshop/R/script.R"
+
+```
+
+]
+
+--
+
+__Note!__ 
+
+* Rmarkdown documents assume files are in same folder.  
+* R scripts assume files are in project root.
+
+
+---
+
+## Spatial Data Models
+
+```{r, echo = FALSE, fig.width = 700/72}
+
+par(pty = "s",
+    mfrow = c(1, 2),
+    mar = c(2,2,2,0),
+    oma = rep(0, 4))
+
+plot(0,
+     type = "n",
+     xlim = c(0, 10),
+     ylim = c(0, 10),
+     xlab = "",
+     ylab = "",
+     xaxs = "i",
+     yaxs = "i")
+
+title(main = "Vector", 
+      adj = 0, 
+      line = 0.3,
+      cex.main = 2)
+
+points(x = c(4.3, 7.2, 8.7),
+       y = c(4.6, 9.4, 1.5),
+       pch = 19,
+       cex = 1.3)
+
+lines(x = c(2.5, 8.5),
+      y = c(1.5, 6.5),
+      lwd = 2)
+
+polygon(x = c(2, 2, 4, 4, 2),
+        y = c(6, 8, 8, 6, 6),
+        col = adjustcolor("lightgray", alpha.f = 0.6))
+
+m <- matrix(runif(100, min = 0, max = 100),
+            nrow = 10,
+            ncol = 10)
+
+image(x = seq(0.5, 9.5, by = 1),
+      y = seq(0.5, 9.5, by = 1),
+      z = m,
+      col = terrain.colors(100),
+      xlim = c(0, 10),
+      ylim = c(0, 10),
+      xlab = "",
+      ylab = "",
+      yaxt = "n")
+
+title(main = "Raster", 
+      adj = 0, 
+      line = 0.3,
+      cex.main = 2)
+
+grid(nx = 10,
+     ny = 10,
+     lty = 1,
+     col = "gray50")
+
+box()
+
+```
+
+
+---
+
+## Simple Features
+
+Simple formula: $sf = data.frame\,\; (\text{attributes} + \text{geometry}) + crs + bbox$
+
+--
+
+### Example
+
+```{r, echo = FALSE}
+
+data("world", package = "spData")
+
+world <- world
+
+```
+
+```{r}
+world <- subset(world, select = -c(iso_a2, continent, region_un, subregion, type))
+
+
+names(world)
+```
+
+
+---
+
+## Simple Features
+
+```{r}
+print(world, n = 5)
+
+```
+
+
+---
+
+## Why sf?
+
+1. It's faster
+2. Plotting is better
+3. It's JUST a data.frame
+4. It's TIDY, meaning it is highly integrated with tidyverse packages
+5. It's syntax is consistent, and you can pick out an sf verb by the `st` prefix*
+
+<br><br><br><br>
+
+* `st` originally meant "__S__patial and __T__emporal" in PostGIS, but support for temporal data was dropped, so it became "__S__patial __T__ype". [https://stackoverflow.com/questions/7234679/what-is-st-in-postgis](https://stackoverflow.com/questions/7234679/what-is-st-in-postgis)
+
+
+---
+
+## The guts
+
+The __s__imple __f__eature (`sf`)
+
+```{r}
+print(world, n = 5)
+
+```
+
+Each row is a _feature_.
+
+
+---
+
+## The guts
+
+The __s__imple __f__eature __c__olumn (`sfc`)
+
+```{r, message = TRUE}
+world$geom
+
+```
+
+The geometry column is a _list_.
+
+
+---
+
+## The guts
+
+A __s__imple __f__eature __g__eometry (`sfg`)
+
+```{r, message = TRUE}
+world$geom[[1]]
+
+```
+
+A single feature's geometry has a Well-Known Text representation of its vertices.
+
+
+---
+
+## Simple Features
+
+From the ground up
+
+```{r}
+point1 <- st_point(c(432000, 4513100))
+point2 <- st_point(c(436750, 4518500))
+
+sf_column <- st_sfc(point1, point2, crs = 26912)
+
+st_sf(id = 1:2, 
+      location = "red butte canyon",
+      geometry = sf_column)
+
+```
+
+Similar to `data.frame(col1 = ..., col2 = ...)`, but with a geometry column.
+
+---
+
+## Geometry types
+
+```{r, echo = FALSE, out.width = "50%"}
+
+knitr::include_graphics("https://geocompr.robinlovelace.net/figures/sf-classes.png")
+
+```
+
+
+---
+
+## Geometry types
+
+```{r}
+small_world <- world[1:5, ]
+
+st_geometry_type(small_world)
+
+```
+
+--
+
+## Constructors
+
+.pull-left[
+
+Using `c()` and `matrix()`
+
+* `st_point()`
+* `st_multipoint()`
+* `st_linestring()`
+
+]
+
+.pull-right[
+
+Using `list()`
+
+* `st_polygon()`
+* `st_multilinestring()`
+* `st_multipolygon()`
+* `st_geometrycollection()`
+
+]
+
+---
+
+## Polygon
+
+.pull-left[
+
+```{r}
+vertices <- rbind(c(1, 5), 
+                  c(2, 2), 
+                  c(4, 1), 
+                  c(4, 4), 
+                  c(1, 5))
+
+vertices
+
+```
+
+]
+
+.pull-right[
+
+```{r, message = TRUE}
+vertices_list <- list(vertices)
+
+st_polygon(vertices_list)
+
+```
+
+]
+
+---
+
+## Bounding Box
+
+```{r}
+st_bbox(world)
+
+```
+
+
+---
+
+## Plot all attributes
+
+```{r}
+plot(world)
+
+```
+
+
+---
+
+## Plot only geometry
+
+```{r}
+plot(st_geometry(world))
+
+```
+
+
+
+---
+
+## Raster
+
+Simple formula: $raster = matrix + crs + bbox$
+
+```{r, echo = FALSE, out.width = "80%"}
+
+knitr::include_graphics("https://geocompr.robinlovelace.net/02-spatial-data_files/figure-html/raster-intro-plot-1.png")
+
+```
+
+
+---
+
+## Raster
+
+```{r}
+raster_filepath = system.file("raster/srtm.tif", package = "spDataLarge")
+
+new_raster = raster(raster_filepath)
+
+new_raster
+
+```
+
+
+---
+
+## Plot
+
+```{r, fig.width = 700/72}
+plot(new_raster)
+
+```
+
+
+---
+
+## Bounding Box
+
+```{r}
+
+extent(new_raster)
+
+```
+
+
+
+---
+
+## Raster Brick
+
+Usually multispectral data (like rgb), loaded from a single file with multiple layers.
+
+```{r}
+multi_raster_file = system.file("raster/landsat.tif", package = "spDataLarge")
+
+r_brick = brick(multi_raster_file)
+
+r_brick
+```
+
+
+---
+
+## Raster Stack
+
+Different variables in a list type object, typically loaded from different files or constructed from different R objects.
+
+```{r}
+r_stack <- stack(new_raster, new_raster)
+
+r_stack
+
+```
+
+---
+
+## From Scratch
+
+```{r, fig.width = 700/72}
+r <- raster(ncols = 10, 
+            nrows = 10, 
+            crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+
+r <- setValues(r, runif(ncell(r), min = 0, max = 100))
+
+r
+
+```
+
+
+
+---
+
+## Coordinate Reference System
+
+.pull-left[
+
+Geographic CRS  
+
+* Latitude and Longitude  
+* Spherical  
+* Equatorial and Polar radii  
+
+]
+
+.pull-right[
+
+Projected CRS  
+
+* Easting and Northing (x and y)  
+* Origin
+* Conic, cylindrical, and planar  
+
+]
+
+
+---
+
+## CRS in R
+
+.pull-left[
+
+`sf` uses WKT
+
+```{r}
+st_crs(world)
+
+```
+
+]
+
+.pull-right[
+
+`raster` uses proj4string
+
+```{r}
+projection(new_raster)
+
+crs(new_raster)
+```
+
+]
+
+
+---
+
+## Units
+
+This is actually a fairly novel aspect of `sf` and the whole R ecosystem.
+
+```{r}
+luxembourg <- subset(world, name_long == "Luxembourg")
+
+st_area(luxembourg)
+
+units::set_units(st_area(luxembourg), km^2)
+
+```
+
+<br>
+
+--
+
+__Note!__ Raster does not have a concept of units, and instead relies exclusively on the CRS.
+
+
+---
+
+## Projecting spatial data
+
+When to reproject?
+
+```{r}
+london_geo <- st_as_sf(data.frame(lon = -0.1, lat = 51.5),
+                       coords = c("lon", "lat"),
+                       crs = 4326)
+
+london_proj <- st_as_sf(data.frame(x = 530000, y = 180000),
+                        coords = c("x", "y"),
+                        crs = 27700)
+
+st_distance(london_geo, london_proj)
+
+```
+
+
+---
+
+## Projecting Spatial Data
+
+How to reproject `sf`?
+
+
+```{r}
+st_crs(london_geo)$epsg
+
+london_ogsb <- st_transform(london_geo, crs = 27700)
+
+st_crs(london_ogsb)$epsg
+
+```
+
+
+
+---
+
+## Projecting Spatial Data
+
+How to reproject `sf`?
+
+.pull-left[
+
+```{r}
+utm12 <- st_crs(26912)
+
+utm12$proj4string
+
+```
+
+]
+
+.pull-right[
+
+```{r}
+lambert <- st_crs("+proj=laea +lat_0=37.32 +lon_0=-113.04")
+
+lambert$proj4string
+
+```
+
+
+]
+
+---
+
+## Projecting Spatial Data
+
+How to reproject `raster`? For a raster with _categorical_ data, use the nearest neighbor method.
+
+```{r}
+cat_raster = raster(system.file("raster/nlcd2011.tif", package = "spDataLarge"))
+
+projectRaster(cat_raster,
+              crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
+              method = "ngb")
+
+```
+
+
+---
+
+## Projecting Spatial Data
+
+How to reproject `raster`? For a raster with _continuous_ data, use the bilinear method.
+
+```{r}
+con_raster = raster(system.file("raster/srtm.tif", package = "spDataLarge"))
+
+projectRaster(con_raster,
+              crs = "+proj=laea +lat_0=37.32 +lon_0=-113.04",
+              method = "bilinear")
+
+```
+
