@@ -1,0 +1,16 @@
+name: "spatial_workshop"
+title: "R spatial workshop"
+description: |
+  R Spatial Workshop
+output_dir: "_site"
+navbar:
+  right:
+    - text: "slides"
+      menu:
+        - text: "Introduction to spatial data"
+          href: lessons/lesson_one.html
+    - text: "worksheets"
+      menu:
+        - text: "Exercise One"
+          href: exercises/exercise_one.Rmd
+output: distill::distill_article

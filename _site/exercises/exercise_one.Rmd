@@ -1,0 +1,148 @@
+---
+title: "Exercise One"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE,
+                      error = TRUE,
+                      collapse = TRUE, # code and output in same block
+                      fig.align = "center",
+                      fig.width = 500/72,
+                      fig.retina = 2,
+                      fig.asp = 0.7)
+```
+
+## Basics
+
+Load the `sf`, `raster`, `spData`, and `spDataLarge` packages.
+
+```{r}
+
+```
+
+
+## sf
+
+Datasets are "lazy" loaded, meaning when you load the package, the datasets are kinda just there in the background of your R session. Try printing the world dataset with `print`, but limit the number of rows printed to 5 using the `n` parameter. 
+
+```{r}
+
+
+```
+
+Now extract New Zealand and assign it to a new object. Call it "nz". Hint: use the `name_long` variable.
+
+```{r}
+
+```
+
+Now plot only the geometry of New Zealand.
+
+```{r}
+
+```
+
+Try creating an sf object from scratch. Start by making two simple feature geometries (`sfg`), then add those to a simple feature column (`sfc`), and finally add that as a geometry column to an simple feature (`sf`). Make sure to add a `crs` to the `sfc`!
+
+```{r}
+
+```
+
+
+
+## raster
+
+Load the categorical raster from the spDataLarge package and plot it. Call it `cat_raster`.
+
+```{r, warning = TRUE}
+
+fn <- system.file("raster/nlcd2011.tif", package = "spDataLarge")
+
+cat_raster <- raster(fn)
+
+```
+
+
+Load the continuous raster from the spDataLarge package and plot it. Call it `con_raster`.
+
+```{r}
+
+fn <- system.file("raster/srtm.tif", package = "spDataLarge")
+
+
+
+```
+
+Find the extent of `cat_raster`.
+
+```{r}
+
+```
+
+
+Make a raster from scratch. Use the NAD83 UTM 12 crs and assign it random values. Call it `new_raster`.
+
+```{r}
+
+utm12 <- "+proj=utm +zone=12 +datum=NAD83 +units=m +no_defs"
+
+
+
+```
+
+Find the extent of `new_raster`.
+
+```{r}
+
+```
+
+
+
+
+## Projecting
+
+Check the crs of `world`. What is its proj4string?
+
+```{r}
+
+```
+
+Check the crs of `con_raster`.
+
+```{r}
+
+```
+
+Plot the geometry of the `nz` object. Then create a new object called `nz_moll` by reprojecting the `nz` object to the Mollweide projection ("+proj=moll"). Plot the geometry of the result.
+
+```{r}
+
+```
+
+Transform the `world` dataset to the transverse Mercator projection ("+proj=tmerc") and plot the result.
+
+```{r}
+
+```
+
+Transform the continuous raster (`con_raster`) into NAD83 / UTM zone 12N using the nearest neighbor interpolation method. What has changed? How does it influence the results? Plot the result.
+
+```{r}
+
+```
+
+Transform the categorical raster (`cat_raster`) into WGS 84 using the bilinear interpolation method. What has changed? How does it influence the results? Plot the result.
+
+```{r}
+
+```
+
+Transform `new_raster` to WGS84 and plot it.
+
+```{r}
+
+```
+

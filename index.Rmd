@@ -1,0 +1,31 @@
+---
+title: "R spatial workshop"
+description: |
+  A somewhat gentle introduction to working with spatial data in R.
+site: distill::distill_website
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+Slides and worksheets for a three day workshop providing a somewhat gentle introduction to working with spatial data in R. The content and exercises are designed for 3 two-hour meetings.  
+
+All lessons are based on Lovelace, Nowosad, and Muenchow (2021) Geocomputation with R. It’s open-source and freely available [here](https://geocompr.robinlovelace.net/). This is an excellent resource, and something I find myself consulting quite often. Exercises are a mix of the exercises provided in that text and my own additions.  
+
+Outline:
+
+1. __Day One: Introduction__
+    *	Installation and a brief overview of vector and raster data
+    * Reading and writing spatial data
+    * Projecting spatial data
+    * _Reading: Ch 2, 6, and 7_
+2. __Day Two: Change, Subset, and Select Data__
+    * Attribute data operations
+    * Spatial data operations
+    * _Reading: Ch 3 and 4_
+3. __Day Three: Change Geometry and Plot__
+    * Geometry data operations
+    * Making pretty maps
+    * _Reading: Ch 5 and 8_
