@@ -17,5 +17,6 @@ navbar:
         - text: "Exercise One"
           href: exercises/exercise_one.Rmd
         - text: "Exercise Two"
+          href: exercises/exercise_two.Rmd
         - text: "Exercise Three"
 output: distill::distill_article
