@@ -75,3 +75,31 @@ xaringanExtra::use_tile_view()
 }
 
 ```
+
+<!-- knit_hook: collapse and print error red
+super hacky, see here: https://stackoverflow.com/a/54985678/7705429
+we'll need to be careful to not string four # together anywhere
+--->
+
+<script>
+$(document).ready(function() {
+  window.setTimeout(function() {
+    $(".co:contains('####')").css("color", "red");
+    var tmp = $(".co:contains('####')").text();
+    $(".co:contains('####')").text(tmp.replace("####", "##"));
+  }, 15);
+});
+</script>
+
+```{r, include = FALSE, echo = FALSE}
+local({
+  
+  hook_error <- knitr::knit_hooks$get("error")
+  knitr::knit_hooks$set(error = function(x, options) {
+    x <- paste0("##", x)
+    x <- sub(" in eval(expr, envir, enclos)", "", x, fixed = TRUE)
+    hook_error(x, options)
+  })
+  
+})
+```

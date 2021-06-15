@@ -9,8 +9,13 @@ navbar:
       menu:
         - text: "Introduction to spatial data"
           href: lessons/lesson_one.html
+        - text: "Spatial and attribute operations"
+          href: lessons/lesson_two.html
+        - text: "Geometry operations and plotting"
     - text: "worksheets"
       menu:
         - text: "Exercise One"
           href: exercises/exercise_one.Rmd
+        - text: "Exercise Two"
+        - text: "Exercise Three"
 output: distill::distill_article

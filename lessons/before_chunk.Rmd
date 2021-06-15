@@ -11,7 +11,8 @@ library(sf)
 library(viridis)
 ```
 
-```{r setup}
+```{r setup, echo = FALSE}
+
 knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE,
                       message = FALSE,
@@ -20,13 +21,26 @@ knitr::opts_chunk$set(echo = TRUE,
                       fig.align = "center",
                       fig.retina = 2,
                       fig.asp = 0.7)
+
 options(htmltools.dir.version = FALSE,
-        str = strOptions(vec.len = 2),
-        sf_max_print = 5)
+        str = strOptions(vec.len = 2))
+
 ```
 
+```{r, echo = FALSE}
+
+# define knit_print methods for sf
+knit_print.sf <- function(x, ...) print(x, n = 5)
+
+```
+
+
 ```{r xaringan-themer, include = FALSE, warning = FALSE}
+
 library(xaringanthemer)
+
+extra_css <- list(".rred" = list("color" = "var(--text-bold-color)")) 
+
 style_duo_accent(
   primary_color = "#5e5e5e",
   secondary_color = "#CC0000",
@@ -36,8 +50,10 @@ style_duo_accent(
   code_font_size = "0.8rem",
   header_h1_font_size = "45px",
   header_h2_font_size = "35px",
-  header_h3_font_size = "20px"
+  header_h3_font_size = "20px",
+  extra_css = extra_css
 )
+
 ```
 
 ```{r xaringan-animate-css, echo = FALSE}
@@ -49,14 +65,30 @@ use_animate_css()
 xaringanExtra::use_tile_view()
 ```
 
+```{r xaringan-tachyons, echo=FALSE}
+xaringanExtra::use_tachyons()
+```
+
 ```{css, echo = FALSE}
 .pull-lleft {
   float: left;
-  width: 15%;
+  width: 25%;
 }
 .pull-lright {
   float: right;
+  width: 74%;
+}
+.pull-lright ~ * {
+  clear: both;
+}
+
+.pull-rleft {
+  float: left;
   width: 84%;
+}
+.pull-rright {
+  float: right;
+  width: 15%;
 }
 .pull-lright ~ * {
   clear: both;
@@ -75,3 +107,39 @@ xaringanExtra::use_tile_view()
 }
 
 ```
+
+<!-- knit_hook: collapse and print error red
+super hacky, see here: https://stackoverflow.com/a/54985678/7705429
+we'll need to be careful to not string four # together anywhere
+
+
+<script>
+$(document).ready(function() {
+  window.setTimeout(function() {
+    $(".hljs-comment:contains('####')").css("color", "red");
+    var tmp = $(".hljs-comment:contains('####')").text();
+    $(".hljs-comment:contains('####')").text(tmp.replace("####", "##"));
+  }, 15);
+});
+</script>
+
+```{r, include = FALSE, echo = FALSE, eval = FALSE}
+local({
+  
+  hook_error <- knitr::knit_hooks$get("error")
+  knitr::knit_hooks$set(error = function(x, options) {
+    x <- paste0("##", x)
+    x <- sub(" in eval(expr, envir, enclos)", "", x, fixed = TRUE)
+    hook_error(x, options)
+  })
+  
+  # hook_message <- knitr::knit_hooks$get("message")
+  # knitr::knit_hooks$set(message = function(x, options) {
+  #   x <- paste0("##", x)
+  #   # x <- sub(" in eval(expr, envir, enclos)", "", x, fixed = TRUE)
+  #   hook_message(x, options)
+  # })
+  
+})
+```
+--->

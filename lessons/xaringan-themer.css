@@ -271,3 +271,9 @@ table.dataTable.hover tbody tr:hover, table.dataTable.display tbody tr:hover {
   background-color: var(--white);
 }
 
+
+
+/* Extra CSS */
+.rred {
+  color: var(--text-bold-color);
+}

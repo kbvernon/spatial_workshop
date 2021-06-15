@@ -3,11 +3,12 @@
   <head>
     <title>Spatial Data in R</title>
     <meta charset="utf-8" />
-    <meta name="date" content="2021-06-14" />
+    <meta name="date" content="2021-06-15" />
     <script src="libs/header-attrs/header-attrs.js"></script>
     <link href="libs/animate.css/animate.xaringan.css" rel="stylesheet" />
     <link href="libs/tile-view/tile-view.css" rel="stylesheet" />
     <script src="libs/tile-view/tile-view.js"></script>
+    <link href="libs/tachyons/tachyons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
     <link rel="stylesheet" href="custom_style.css" type="text/css" />
   </head>
@@ -16,9 +17,14 @@
 class: center, middle, inverse, title-slide
 
 # Spatial Data in R
-### 2021-06-14
+### 2021-06-15
 
 ---
+
+
+
+
+
 
 
 
@@ -36,11 +42,23 @@ class: center, middle, inverse, title-slide
 &lt;style type="text/css"&gt;
 .pull-lleft {
   float: left;
-  width: 15%;
+  width: 25%;
 }
 .pull-lright {
   float: right;
+  width: 74%;
+}
+.pull-lright ~ * {
+  clear: both;
+}
+
+.pull-rleft {
+  float: left;
   width: 84%;
+}
+.pull-rright {
+  float: right;
+  width: 15%;
 }
 .pull-lright ~ * {
   clear: both;
@@ -60,6 +78,24 @@ class: center, middle, inverse, title-slide
 
 &lt;/style&gt;
 
+&lt;!-- knit_hook: collapse and print error red
+super hacky, see here: https://stackoverflow.com/a/54985678/7705429
+we'll need to be careful to not string four # together anywhere
+
+
+&lt;script&gt;
+$(document).ready(function() {
+  window.setTimeout(function() {
+    $(".hljs-comment:contains('####')").css("color", "red");
+    var tmp = $(".hljs-comment:contains('####')").text();
+    $(".hljs-comment:contains('####')").text(tmp.replace("####", "##"));
+  }, 15);
+});
+&lt;/script&gt;
+
+
+---&gt;
+
 ## Outline
 
 1. Setup
@@ -70,17 +106,14 @@ class: center, middle, inverse, title-slide
 2. Projecting
 2. Reading and Writing
 
+
 ---
 
 ## Setup
 
---
+
 * Create R project folder  
-
---
 * Add _data_, _gis_, and _R_ folders  
-
---
 * Install packages  
 
 
@@ -91,7 +124,6 @@ install.packages(c("here", "raster", "spData", "sf"))
 install.packages("spDataLarge", 
                  repos = "https://nowosad.github.io/drat/", 
                  type = "source")
-
 
 # open libraries
 library(here)
@@ -137,11 +169,22 @@ here("R", "script.R")
 ]
 
 --
+count: false
+
+.pull-aright[
 
 __Note!__ 
 
-* Rmarkdown documents assume files are in same folder.  
+.bg-lightest-blue.b--navy.ba.bw1.br2.shadow-5.pa2.mt0[
+
+* Rmarkdown assumes files are in the same folder.  
 * R scripts assume files are in project root.
+
+]
+
+]
+
+
 
 
 ---
@@ -155,46 +198,49 @@ __Note!__
 
 ## Simple Features
 
-Simple formula: `\(sf = data.frame\,\; (\text{attributes} + \text{geometry}) + crs + bbox\)`
-
---
-
-### Example
-
-
+_sf = data.frame_ (attributes + geometry) _+ crs + bbox_
 
 
 ```r
-world &lt;- subset(world, select = -c(iso_a2, continent, region_un, subregion, type))
+data("world", package = "spData")
 
-
-names(world)
-## [1] "name_long" "area_km2"  "pop"       "lifeExp"   "gdpPercap" "geom"
+world &lt;- subset(world, select = c(name_long, 
+                                  area_km2, 
+                                  pop, 
+                                  lifeExp, 
+                                  gdpPercap))
 ```
 
 
 ---
+count: false
 
 ## Simple Features
 
+_sf = data.frame_ (.rred[attributes] + geometry) _+ crs + bbox_
+
 
 ```r
-print(world, n = 5)
-## Simple feature collection with 177 features and 5 fields
-## Geometry type: MULTIPOLYGON
-## Dimension:     XY
-## Bounding box:  xmin: -180 ymin: -90 xmax: 180 ymax: 83.64513
-## Geodetic CRS:  WGS 84
-## # A tibble: 177 x 6
-##   name_long   area_km2     pop lifeExp gdpPercap                            geom
-##   &lt;chr&gt;          &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;              &lt;MULTIPOLYGON [°]&gt;
-## 1 Fiji          19290.  8.86e5    70.0     8222. (((180 -16.06713, 180 -16.5552~
-## 2 Tanzania     932746.  5.22e7    64.2     2402. (((33.90371 -0.95, 34.07262 -1~
-## 3 Western S~    96271. NA         NA         NA  (((-8.66559 27.65643, -8.66512~
-## 4 Canada     10036043.  3.55e7    82.0    43079. (((-122.84 49, -122.9742 49.00~
-## 5 United St~  9510744.  3.19e8    78.8    51922. (((-122.84 49, -120 49, -117.0~
-## # ... with 172 more rows
+plot(world[, c("area_km2", "lifeExp")])
 ```
+
+&lt;img src="lesson_one_files/figure-html/unnamed-chunk-8-1.png" width="1100" style="display: block; margin: auto;" /&gt;
+
+
+---
+count:false
+
+## Simple Features
+
+_sf = data.frame_ (attributes + .rred[geometry]) _+ crs + bbox_
+
+
+```r
+plot(st_geometry(world))
+```
+
+&lt;img src="lesson_one_files/figure-html/unnamed-chunk-10-1.png" width="900" style="display: block; margin: auto;" /&gt;
+
 
 
 ---
@@ -207,20 +253,18 @@ print(world, n = 5)
 4. It's TIDY, meaning it is highly integrated with tidyverse packages
 5. It's syntax is consistent, and you can pick out an sf verb by the `st` prefix*
 
-&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;
+&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;
 
 * `st` originally meant "__S__patial and __T__emporal" in PostGIS, but support for temporal data was dropped, so it became "__S__patial __T__ype". [https://stackoverflow.com/questions/7234679/what-is-st-in-postgis](https://stackoverflow.com/questions/7234679/what-is-st-in-postgis)
 
 
 ---
 
-## The guts
-
-The __s__imple __f__eature (`sf`)
+## __s__imple __f__eature (`sf`)
 
 
 ```r
-print(world, n = 5)
+world
 ## Simple feature collection with 177 features and 5 fields
 ## Geometry type: MULTIPOLYGON
 ## Dimension:     XY
@@ -242,9 +286,7 @@ Each row is a _feature_.
 
 ---
 
-## The guts
-
-The __s__imple __f__eature __c__olumn (`sfc`)
+## __s__imple __f__eature __c__olumn (`sfc`)
 
 
 ```r
@@ -267,9 +309,7 @@ The geometry column is a _list_.
 
 ---
 
-## The guts
-
-A __s__imple __f__eature __g__eometry (`sfg`)
+## __s__imple __f__eature __g__eometry (`sfg`)
 
 
 ```r
@@ -282,9 +322,7 @@ A single feature's geometry has a Well-Known Text representation of its vertices
 
 ---
 
-## Simple Features
-
-From the ground up
+## From the ground up
 
 
 ```r
@@ -353,42 +391,6 @@ Using `list()`
 
 ]
 
----
-
-## Polygon
-
-.pull-left[
-
-
-```r
-vertices &lt;- rbind(c(1, 5), 
-                  c(2, 2), 
-                  c(4, 1), 
-                  c(4, 4), 
-                  c(1, 5))
-
-vertices
-##      [,1] [,2]
-## [1,]    1    5
-## [2,]    2    2
-## [3,]    4    1
-## [4,]    4    4
-## [5,]    1    5
-```
-
-]
-
-.pull-right[
-
-
-```r
-vertices_list &lt;- list(vertices)
-
-st_polygon(vertices_list)
-## POLYGON ((1 5, 2 2, 4 1, 4 4, 1 5))
-```
-
-]
 
 ---
 
@@ -402,28 +404,7 @@ st_bbox(world)
 ```
 
 
----
 
-## Plot all attributes
-
-
-```r
-plot(world)
-```
-
-&lt;img src="lesson_one_files/figure-html/unnamed-chunk-18-1.png" width="504" style="display: block; margin: auto;" /&gt;
-
-
----
-
-## Plot only geometry
-
-
-```r
-plot(st_geometry(world))
-```
-
-&lt;img src="lesson_one_files/figure-html/unnamed-chunk-19-1.png" width="504" style="display: block; margin: auto;" /&gt;
 
 
 
@@ -433,20 +414,11 @@ plot(st_geometry(world))
 
 Simple formula: `\(raster = matrix + crs + bbox\)`
 
-&lt;img src="https://geocompr.robinlovelace.net/02-spatial-data_files/figure-html/raster-intro-plot-1.png" width="80%" style="display: block; margin: auto;" /&gt;
-
-
----
-
-## Raster
-
 
 ```r
-raster_filepath = system.file("raster/srtm.tif", package = "spDataLarge")
+fn &lt;- system.file("raster/srtm.tif", package = "spDataLarge")
 
-new_raster = raster(raster_filepath)
-
-new_raster
+(new_raster &lt;- raster(fn))
 ## class      : RasterLayer 
 ## dimensions : 457, 465, 212505  (nrow, ncol, ncell)
 ## resolution : 0.0008333333, 0.0008333333  (x, y)
@@ -460,14 +432,39 @@ new_raster
 
 ---
 
-## Plot
+## Raster
+
+Simple formula: `\(raster = matrix + crs + bbox\)`
 
 
 ```r
 plot(new_raster)
 ```
 
-&lt;img src="lesson_one_files/figure-html/unnamed-chunk-22-1.png" width="700" style="display: block; margin: auto;" /&gt;
+
+&lt;img src="lesson_one_files/figure-html/unnamed-chunk-20-1.png" width="450" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+## From Scratch
+
+
+```r
+r &lt;- raster(ncols = 10, 
+            nrows = 10, 
+            crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+
+(r &lt;- setValues(r, runif(ncell(r), min = 0, max = 100)))
+## class      : RasterLayer 
+## dimensions : 10, 10, 100  (nrow, ncol, ncell)
+## resolution : 36, 18  (x, y)
+## extent     : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## source     : memory
+## names      : layer 
+## values     : 0.09111536, 99.75704  (min, max)
+```
 
 
 ---
@@ -476,7 +473,6 @@ plot(new_raster)
 
 
 ```r
-
 extent(new_raster)
 ## class      : Extent 
 ## xmin       : -113.2396 
@@ -486,20 +482,18 @@ extent(new_raster)
 ```
 
 
-
 ---
 
-## Raster Brick
+## Raster brick
 
-Usually multispectral data (like rgb), loaded from a single file with multiple layers.
+Multispectral data, loaded from a single file with multiple layers.
 
 
 ```r
-multi_raster_file = system.file("raster/landsat.tif", package = "spDataLarge")
+fn &lt;- system.file("raster/landsat.tif", 
+                  package = "spDataLarge")
 
-r_brick = brick(multi_raster_file)
-
-r_brick
+(r_brick = brick(fn))
 ## class      : RasterBrick 
 ## dimensions : 1428, 1128, 1610784, 4  (nrow, ncol, ncell, nlayers)
 ## resolution : 30, 30  (x, y)
@@ -514,15 +508,13 @@ r_brick
 
 ---
 
-## Raster Stack
+## Raster stack
 
-Different variables in a list type object, typically loaded from different files or constructed from different R objects.
+Different variables in a "list", loaded from multiple files with single layers.
 
 
 ```r
-r_stack &lt;- stack(new_raster, new_raster)
-
-r_stack
+(r_stack &lt;- stack(new_raster, new_raster))
 ## class      : RasterStack 
 ## dimensions : 457, 465, 212505, 2  (nrow, ncol, ncell, nlayers)
 ## resolution : 0.0008333333, 0.0008333333  (x, y)
@@ -531,29 +523,6 @@ r_stack
 ## names      : srtm.1, srtm.2 
 ## min values :   1024,   1024 
 ## max values :   2892,   2892
-```
-
----
-
-## From Scratch
-
-
-```r
-r &lt;- raster(ncols = 10, 
-            nrows = 10, 
-            crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
-
-r &lt;- setValues(r, runif(ncell(r), min = 0, max = 100))
-
-r
-## class      : RasterLayer 
-## dimensions : 10, 10, 100  (nrow, ncol, ncell)
-## resolution : 36, 18  (x, y)
-## extent     : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)
-## crs        : +proj=longlat +datum=WGS84 +no_defs 
-## source     : memory
-## names      : layer 
-## values     : 0.0002017478, 98.78901  (min, max)
 ```
 
 
@@ -647,6 +616,7 @@ units::set_units(st_area(luxembourg), km^2)
 &lt;br&gt;
 
 --
+count: false
 
 __Note!__ Raster does not have a concept of units, and instead relies exclusively on the CRS.
 
@@ -674,9 +644,7 @@ st_distance(london_geo, london_proj)
 
 ---
 
-## Projecting Spatial Data
-
-How to reproject `sf`?
+## Projecting vectors
 
 
 
@@ -694,11 +662,9 @@ st_crs(london_ogsb)$epsg
 
 ---
 
-## Projecting Spatial Data
+## Projecting vectors
 
-How to reproject `sf`?
 
-.pull-left[
 
 
 ```r
@@ -706,14 +672,7 @@ utm12 &lt;- st_crs(26912)
 
 utm12$proj4string
 ## [1] "+proj=utm +zone=12 +datum=NAD83 +units=m +no_defs"
-```
 
-]
-
-.pull-right[
-
-
-```r
 lambert &lt;- st_crs("+proj=laea +lat_0=37.32 +lon_0=-113.04")
 
 lambert$proj4string
@@ -721,18 +680,54 @@ lambert$proj4string
 ```
 
 
-]
-
 ---
 
-## Projecting Spatial Data
+## Projecting rasters
 
-How to reproject `raster`? For a raster with _categorical_ data, use the nearest neighbor method.
+.pull-left[
 
 
 ```r
-cat_raster = raster(system.file("raster/nlcd2011.tif", package = "spDataLarge"))
+fn &lt;- system.file("raster/nlcd2011.tif", 
+                  package = "spDataLarge")
 
+cat_raster &lt;- raster(fn) 
+
+plot(cat_raster)
+```
+
+&lt;img src="lesson_one_files/figure-html/cat-rast-plot-2.png" width="672" height="90%" style="display: block; margin: auto;" /&gt;
+
+
+]
+
+.pull-right[
+
+
+```r
+fn &lt;- system.file("raster/srtm.tif", 
+                  package = "spDataLarge")
+
+con_raster = raster(fn)
+
+plot(con_raster)
+
+```
+
+&lt;img src="lesson_one_files/figure-html/unnamed-chunk-33-1.png" width="450" style="display: block; margin: auto;" /&gt;
+
+
+]
+
+
+---
+
+## Projecting rasters
+
+For a raster with _categorical_ data, use the nearest neighbor method.
+
+
+```r
 projectRaster(cat_raster,
               crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
               method = "ngb")
@@ -749,14 +744,12 @@ projectRaster(cat_raster,
 
 ---
 
-## Projecting Spatial Data
+## Projecting rasters 
 
-How to reproject `raster`? For a raster with _continuous_ data, use the bilinear method.
+For a raster with _continuous_ data, use the bilinear method.
 
 
 ```r
-con_raster = raster(system.file("raster/srtm.tif", package = "spDataLarge"))
-
 projectRaster(con_raster,
               crs = "+proj=laea +lat_0=37.32 +lon_0=-113.04",
               method = "bilinear")
@@ -769,6 +762,278 @@ projectRaster(con_raster,
 ## names      : srtm 
 ## values     : 1027.369, 2891.357  (min, max)
 ```
+
+
+---
+
+## Read/Write rasters
+
+
+```r
+writeRaster(con_raster,
+            filename = here("gis", "srtm.tif"),
+            foramt = "GTiff")
+
+writeRaster(cat_raster,
+            filename = here("gis", "nlcd2011.tif"),
+            format = "GTiff")
+```
+
+
+```r
+con_raster &lt;- raster(here("gis", "srtm.tif"))
+
+cat_raster &lt;- raster(here("gis", "nlcd2011.tif"))
+
+```
+
+
+
+---
+
+## Writing vectors
+
+
+```r
+data("us_states", package = "spData")
+
+plot(st_geometry(us_states))
+```
+
+&lt;img src="lesson_one_files/figure-html/unnamed-chunk-38-1.png" width="900" style="display: block; margin: auto;" /&gt;
+
+---
+
+## Writing vectors
+
+
+```r
+st_write(us_states, dsn = here("gis", "us_states.shp"))
+## Writing layer `us_states' to data source 
+##   `C:/Users/u0694980/Box/spatial_workshop/gis/us_states.shp' using driver `ESRI Shapefile'
+## Writing 49 features with 6 fields and geometry type Multi Polygon.
+```
+
+__dsn__ is short for __d__ata __s__ource __n__ame, can be a file, a folder, a local database, or a connection to a remote database.  
+
+
+---
+
+## Writing vectors
+
+
+```r
+
+ut &lt;- subset(us_states, NAME == "Utah")
+
+ut_points_col &lt;- st_sample(ut, size = 100)
+
+ut_points &lt;- st_sf(geometry = ut_points_col)
+
+plot(st_geometry(ut), col = "transparent")
+plot(st_geometry(ut_points), pch = 19, add = TRUE)
+```
+
+&lt;img src="lesson_one_files/figure-html/unnamed-chunk-40-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+## Writing vectors
+
+.pull-left[
+
+If you want to save to a csv file...
+
+
+```r
+st_write(ut_points, 
+         dsn = here("data", "ut_points.csv"),
+         layer_options = "GEOMETRY=AS_XY",
+         append = FALSE)
+## Writing layer `ut_points' to data source 
+##   `C:/Users/u0694980/Box/spatial_workshop/data/ut_points.csv' using driver `CSV'
+## options:        GEOMETRY=AS_XY 
+## Writing 100 features with 0 fields and geometry type Point.
+```
+
+]
+
+.pull-right[
+
+This is equivalent to:
+
+
+```r
+ut_points_matrix &lt;- st_coordinates(ut_points)
+
+ut_points &lt;- as.data.frame(ut_points_matrix)
+
+write.csv(ut_points, 
+          file = here("data", "ut_points.csv"), 
+          row.names = FALSE)
+
+```
+
+]
+
+
+---
+
+## Writing vectors
+
+If a file or layer already exists, use `append = FALSE`.
+
+
+```r
+st_write(us_states, 
+         dsn = here("gis", "us_states.shp"),
+         append = FALSE)
+
+```
+
+---
+
+## Writing vectors
+
+To suppress messages sf prints when reading or writing data, use `quiet = TRUE`.
+
+
+```r
+st_write(us_states, 
+         dsn = here("gis", "us_states.shp"),
+         quiet = TRUE)
+
+```
+
+
+
+---
+
+## Writing vectors
+
+
+```r
+write_sf(us_states, 
+         dsn = here("gis", "us_states.shp"))
+```
+
+This is equivalent to
+
+
+```r
+st_write(us_states, 
+         dsn = here("gis", "us_states.shp"),
+         append = FALSE,
+         quiet = TRUE)
+
+```
+
+
+
+
+---
+
+## Reading vectors
+
+
+```r
+us_states &lt;- st_read(here("gis", "us_states.shp"))
+## Reading layer `us_states' from data source 
+##   `C:\Users\u0694980\Box\spatial_workshop\gis\us_states.shp' 
+##   using driver `ESRI Shapefile'
+## Simple feature collection with 49 features and 6 fields
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: -124.7042 ymin: 24.55868 xmax: -66.9824 ymax: 49.38436
+## Geodetic CRS:  NAD83
+```
+
+
+
+---
+
+## Reading vectors
+
+
+```r
+us_states &lt;- st_read(here("gis", "us_states.shp"), quiet = TRUE)
+
+```
+
+Can also write
+
+
+```r
+us_states &lt;- read_sf(here("gis", "us_states.shp"))
+
+```
+
+
+---
+
+## Data.frame to sf
+
+
+```r
+ut_points &lt;- read.csv(here("data", "ut_points.csv"))
+
+(ut_points &lt;- st_as_sf(ut_points,
+                       coords = c("X", "Y"),
+                       crs = 26912))
+## Simple feature collection with 100 features and 0 fields
+## Geometry type: POINT
+## Dimension:     XY
+## Bounding box:  xmin: -114.0108 ymin: 37.00064 xmax: -109.0679 ymax: 41.98543
+## Projected CRS: NAD83 / UTM zone 12N
+## First 5 features:
+##                     geometry
+## 1 POINT (-113.6065 39.07881)
+## 2 POINT (-113.3119 40.11821)
+## 3 POINT (-112.4264 40.16291)
+## 4  POINT (-112.7882 38.5008)
+## 5 POINT (-110.0268 40.86106)
+```
+
+
+---
+
+## Geopackages
+
+
+```r
+gpkg &lt;- here("gis", "project.gpkg")
+
+write_sf(us_states, dsn = gpkg, layer = "states")
+
+write_sf(ut_points, dsn = gpkg, layer = "ut_points")
+
+write_sf(world, dsn = gpkg, layer = "world")
+
+st_layers(gpkg)
+## Driver: GPKG 
+## Available layers:
+##   layer_name geometry_type features fields
+## 1     states Multi Polygon       49      6
+## 2  ut_points         Point      100      0
+## 3      world Multi Polygon      177      5
+```
+
+
+---
+
+## Geopackages
+
+
+```r
+us_states &lt;- read_sf(gpkg, layer = "states")
+
+ut_points &lt;- read_sf(gpkg, layer = "ut_points")
+
+world &lt;- read_sf(gpkg, layer = "world")
+
+```
+
 
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
