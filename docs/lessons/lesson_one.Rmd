@@ -26,17 +26,14 @@ output:
 2. Projecting
 2. Reading and Writing
 
+
 ---
 
 ## Setup
 
---
+
 * Create R project folder  
-
---
 * Add _data_, _gis_, and _R_ folders  
-
---
 * Install packages  
 
 ```{r, eval = FALSE}
@@ -46,7 +43,6 @@ install.packages(c("here", "raster", "spData", "sf"))
 install.packages("spDataLarge", 
                  repos = "https://nowosad.github.io/drat/", 
                  type = "source")
-
 
 # open libraries
 library(here)
@@ -90,11 +86,22 @@ here("R", "script.R")
 ]
 
 --
+count: false
+
+.pull-aright[
 
 __Note!__ 
 
-* Rmarkdown documents assume files are in same folder.  
+.bg-lightest-blue.b--navy.ba.bw1.br2.shadow-5.pa2.mt0[
+
+* Rmarkdown assumes files are in the same folder.  
 * R scripts assume files are in project root.
+
+]
+
+]
+
+
 
 
 ---
@@ -168,36 +175,53 @@ box()
 
 ## Simple Features
 
-Simple formula: $sf = data.frame\,\; (\text{attributes} + \text{geometry}) + crs + bbox$
-
---
-
-### Example
-
-```{r, echo = FALSE}
-
-data("world", package = "spData")
-
-world <- world
-
-```
+_sf = data.frame_ (attributes + geometry) _+ crs + bbox_
 
 ```{r}
-world <- subset(world, select = -c(iso_a2, continent, region_un, subregion, type))
+data("world", package = "spData")
 
+world <- subset(world, select = c(name_long, 
+                                  area_km2, 
+                                  pop, 
+                                  lifeExp, 
+                                  gdpPercap))
 
-names(world)
 ```
 
 
 ---
+count: false
 
 ## Simple Features
 
-```{r}
-print(world, n = 5)
+_sf = data.frame_ (.rred[attributes] + geometry) _+ crs + bbox_
 
+```{r, eval = FALSE}
+plot(world[, c("area_km2", "lifeExp")])
 ```
+
+```{r, echo = FALSE, fig.asp = 0.3, fig.width = 1100/72}
+par(mar = c(0, 1, 0, 1), oma = rep(0, 4))
+plot(world[, c("area_km2", "lifeExp")])
+```
+
+
+---
+count:false
+
+## Simple Features
+
+_sf = data.frame_ (attributes + .rred[geometry]) _+ crs + bbox_
+
+```{r, eval = FALSE}
+plot(st_geometry(world))
+```
+
+```{r, echo = FALSE, fig.asp = 0.5, fig.width = 900/72}
+par(mar = c(0, 1, 0, 1), oma = rep(0, 4))
+plot(st_geometry(world))
+```
+
 
 
 ---
@@ -210,19 +234,17 @@ print(world, n = 5)
 4. It's TIDY, meaning it is highly integrated with tidyverse packages
 5. It's syntax is consistent, and you can pick out an sf verb by the `st` prefix*
 
-<br><br><br><br>
+<br><br><br><br><br>
 
 * `st` originally meant "__S__patial and __T__emporal" in PostGIS, but support for temporal data was dropped, so it became "__S__patial __T__ype". [https://stackoverflow.com/questions/7234679/what-is-st-in-postgis](https://stackoverflow.com/questions/7234679/what-is-st-in-postgis)
 
 
 ---
 
-## The guts
-
-The __s__imple __f__eature (`sf`)
+## __s__imple __f__eature (`sf`)
 
 ```{r}
-print(world, n = 5)
+world
 
 ```
 
@@ -231,9 +253,7 @@ Each row is a _feature_.
 
 ---
 
-## The guts
-
-The __s__imple __f__eature __c__olumn (`sfc`)
+## __s__imple __f__eature __c__olumn (`sfc`)
 
 ```{r, message = TRUE}
 world$geom
@@ -245,9 +265,7 @@ The geometry column is a _list_.
 
 ---
 
-## The guts
-
-A __s__imple __f__eature __g__eometry (`sfg`)
+## __s__imple __f__eature __g__eometry (`sfg`)
 
 ```{r, message = TRUE}
 world$geom[[1]]
@@ -259,9 +277,7 @@ A single feature's geometry has a Well-Known Text representation of its vertices
 
 ---
 
-## Simple Features
-
-From the ground up
+## From the ground up
 
 ```{r}
 point1 <- st_point(c(432000, 4513100))
@@ -324,35 +340,6 @@ Using `list()`
 
 ]
 
----
-
-## Polygon
-
-.pull-left[
-
-```{r}
-vertices <- rbind(c(1, 5), 
-                  c(2, 2), 
-                  c(4, 1), 
-                  c(4, 4), 
-                  c(1, 5))
-
-vertices
-
-```
-
-]
-
-.pull-right[
-
-```{r, message = TRUE}
-vertices_list <- list(vertices)
-
-st_polygon(vertices_list)
-
-```
-
-]
 
 ---
 
@@ -364,24 +351,7 @@ st_bbox(world)
 ```
 
 
----
 
-## Plot all attributes
-
-```{r}
-plot(world)
-
-```
-
-
----
-
-## Plot only geometry
-
-```{r}
-plot(st_geometry(world))
-
-```
 
 
 
@@ -391,9 +361,10 @@ plot(st_geometry(world))
 
 Simple formula: $raster = matrix + crs + bbox$
 
-```{r, echo = FALSE, out.width = "80%"}
+```{r}
+fn <- system.file("raster/srtm.tif", package = "spDataLarge")
 
-knitr::include_graphics("https://geocompr.robinlovelace.net/02-spatial-data_files/figure-html/raster-intro-plot-1.png")
+(new_raster <- raster(fn))
 
 ```
 
@@ -402,22 +373,31 @@ knitr::include_graphics("https://geocompr.robinlovelace.net/02-spatial-data_file
 
 ## Raster
 
-```{r}
-raster_filepath = system.file("raster/srtm.tif", package = "spDataLarge")
+Simple formula: $raster = matrix + crs + bbox$
 
-new_raster = raster(raster_filepath)
+```{r, eval = FALSE}
+plot(new_raster)
+```
 
-new_raster
+
+```{r, echo = FALSE, fig.width = 450/72, fig.asp = 0.8}
+par(mar = c(2, 2, 1 , 2),
+    oma = rep(0, 4))
+plot(new_raster)
 
 ```
 
 
 ---
 
-## Plot
+## From Scratch
 
-```{r, fig.width = 700/72}
-plot(new_raster)
+```{r}
+r <- raster(ncols = 10, 
+            nrows = 10, 
+            crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+
+(r <- setValues(r, runif(ncell(r), min = 0, max = 100)))
 
 ```
 
@@ -427,53 +407,34 @@ plot(new_raster)
 ## Bounding Box
 
 ```{r}
-
 extent(new_raster)
 
 ```
 
 
-
 ---
 
-## Raster Brick
+## Raster brick
 
-Usually multispectral data (like rgb), loaded from a single file with multiple layers.
+Multispectral data, loaded from a single file with multiple layers.
 
 ```{r}
-multi_raster_file = system.file("raster/landsat.tif", package = "spDataLarge")
+fn <- system.file("raster/landsat.tif", 
+                  package = "spDataLarge")
 
-r_brick = brick(multi_raster_file)
+(r_brick = brick(fn))
 
-r_brick
 ```
 
 
 ---
 
-## Raster Stack
+## Raster stack
 
-Different variables in a list type object, typically loaded from different files or constructed from different R objects.
+Different variables in a "list", loaded from multiple files with single layers.
 
 ```{r}
-r_stack <- stack(new_raster, new_raster)
-
-r_stack
-
-```
-
----
-
-## From Scratch
-
-```{r, fig.width = 700/72}
-r <- raster(ncols = 10, 
-            nrows = 10, 
-            crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
-
-r <- setValues(r, runif(ncell(r), min = 0, max = 100))
-
-r
+(r_stack <- stack(new_raster, new_raster))
 
 ```
 
@@ -550,6 +511,7 @@ units::set_units(st_area(luxembourg), km^2)
 <br>
 
 --
+count: false
 
 __Note!__ Raster does not have a concept of units, and instead relies exclusively on the CRS.
 
@@ -576,9 +538,7 @@ st_distance(london_geo, london_proj)
 
 ---
 
-## Projecting Spatial Data
-
-How to reproject `sf`?
+## Projecting vectors
 
 
 ```{r}
@@ -594,24 +554,15 @@ st_crs(london_ogsb)$epsg
 
 ---
 
-## Projecting Spatial Data
+## Projecting vectors
 
-How to reproject `sf`?
 
-.pull-left[
 
 ```{r}
 utm12 <- st_crs(26912)
 
 utm12$proj4string
 
-```
-
-]
-
-.pull-right[
-
-```{r}
 lambert <- st_crs("+proj=laea +lat_0=37.32 +lon_0=-113.04")
 
 lambert$proj4string
@@ -619,17 +570,69 @@ lambert$proj4string
 ```
 
 
+---
+
+## Projecting rasters
+
+.pull-left[
+
+```{r cat-rast-plot, fig.show = "hide"}
+fn <- system.file("raster/nlcd2011.tif", 
+                  package = "spDataLarge")
+
+cat_raster <- raster(fn) 
+
+plot(cat_raster)
+
+```
+
+```{r, echo = FALSE, out.height = "90%"}
+
+knitr::include_graphics(file.path("lesson_one_files",
+                                  "figure-html",
+                                  "cat-rast-plot-2.png"))
+
+```
+
+
 ]
+
+.pull-right[
+
+```{r, eval = FALSE}
+fn <- system.file("raster/srtm.tif", 
+                  package = "spDataLarge")
+
+con_raster = raster(fn)
+
+plot(con_raster)
+
+```
+
+```{r, echo = FALSE, fig.width = 450/72, fig.asp = 0.75}
+fn <- system.file("raster/srtm.tif", 
+                  package = "spDataLarge")
+
+con_raster = raster(fn)
+
+par(mar = c(2, 2, 1, 2),
+    oma = rep(0, 4))
+
+plot(con_raster)
+
+```
+
+
+]
+
 
 ---
 
-## Projecting Spatial Data
+## Projecting rasters
 
-How to reproject `raster`? For a raster with _categorical_ data, use the nearest neighbor method.
+For a raster with _categorical_ data, use the nearest neighbor method.
 
 ```{r}
-cat_raster = raster(system.file("raster/nlcd2011.tif", package = "spDataLarge"))
-
 projectRaster(cat_raster,
               crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
               method = "ngb")
@@ -639,16 +642,241 @@ projectRaster(cat_raster,
 
 ---
 
-## Projecting Spatial Data
+## Projecting rasters 
 
-How to reproject `raster`? For a raster with _continuous_ data, use the bilinear method.
+For a raster with _continuous_ data, use the bilinear method.
 
 ```{r}
-con_raster = raster(system.file("raster/srtm.tif", package = "spDataLarge"))
-
 projectRaster(con_raster,
               crs = "+proj=laea +lat_0=37.32 +lon_0=-113.04",
               method = "bilinear")
 
 ```
+
+
+---
+
+## Read/Write rasters
+
+```{r, eval = !file.exists(here("gis", "srtm.tif"))}
+writeRaster(con_raster,
+            filename = here("gis", "srtm.tif"),
+            foramt = "GTiff")
+
+writeRaster(cat_raster,
+            filename = here("gis", "nlcd2011.tif"),
+            format = "GTiff")
+
+```
+
+```{r, eval = FALSE}
+con_raster <- raster(here("gis", "srtm.tif"))
+
+cat_raster <- raster(here("gis", "nlcd2011.tif"))
+
+```
+
+
+
+---
+
+## Writing vectors
+
+```{r, fig.asp = 0.5, fig.width = 900/72}
+data("us_states", package = "spData")
+
+plot(st_geometry(us_states))
+
+```
+
+---
+
+## Writing vectors
+
+```{r}
+st_write(us_states, dsn = here("gis", "us_states.shp"))
+
+```
+
+__dsn__ is short for __d__ata __s__ource __n__ame, can be a file, a folder, a local database, or a connection to a remote database.  
+
+
+---
+
+## Writing vectors
+
+```{r}
+
+ut <- subset(us_states, NAME == "Utah")
+
+ut_points_col <- st_sample(ut, size = 100)
+
+ut_points <- st_sf(geometry = ut_points_col)
+
+plot(st_geometry(ut), col = "transparent")
+plot(st_geometry(ut_points), pch = 19, add = TRUE)
+
+```
+
+
+---
+
+## Writing vectors
+
+.pull-left[
+
+If you want to save to a csv file...
+
+```{r}
+st_write(ut_points, 
+         dsn = here("data", "ut_points.csv"),
+         layer_options = "GEOMETRY=AS_XY",
+         append = FALSE)
+
+```
+
+]
+
+.pull-right[
+
+This is equivalent to:
+
+```{r, eval = FALSE}
+ut_points_matrix <- st_coordinates(ut_points)
+
+ut_points <- as.data.frame(ut_points_matrix)
+
+write.csv(ut_points, 
+          file = here("data", "ut_points.csv"), 
+          row.names = FALSE)
+
+```
+
+]
+
+
+---
+
+## Writing vectors
+
+If a file or layer already exists, use `append = FALSE`.
+
+```{r, eval = FALSE}
+st_write(us_states, 
+         dsn = here("gis", "us_states.shp"),
+         append = FALSE)
+
+```
+
+---
+
+## Writing vectors
+
+To suppress messages sf prints when reading or writing data, use `quiet = TRUE`.
+
+```{r, eval = FALSE}
+st_write(us_states, 
+         dsn = here("gis", "us_states.shp"),
+         quiet = TRUE)
+
+```
+
+
+
+---
+
+## Writing vectors
+
+```{r, eval = TRUE}
+write_sf(us_states, 
+         dsn = here("gis", "us_states.shp"))
+
+```
+
+This is equivalent to
+
+```{r, eval = FALSE}
+st_write(us_states, 
+         dsn = here("gis", "us_states.shp"),
+         append = FALSE,
+         quiet = TRUE)
+
+```
+
+
+
+
+---
+
+## Reading vectors
+
+```{r}
+us_states <- st_read(here("gis", "us_states.shp"))
+
+```
+
+
+
+---
+
+## Reading vectors
+
+```{r, eval = FALSE}
+us_states <- st_read(here("gis", "us_states.shp"), quiet = TRUE)
+
+```
+
+Can also write
+
+```{r, eval = FALSE}
+us_states <- read_sf(here("gis", "us_states.shp"))
+
+```
+
+
+---
+
+## Data.frame to sf
+
+```{r}
+ut_points <- read.csv(here("data", "ut_points.csv"))
+
+(ut_points <- st_as_sf(ut_points,
+                       coords = c("X", "Y"),
+                       crs = 26912))
+
+```
+
+
+---
+
+## Geopackages
+
+```{r}
+gpkg <- here("gis", "project.gpkg")
+
+write_sf(us_states, dsn = gpkg, layer = "states")
+
+write_sf(ut_points, dsn = gpkg, layer = "ut_points")
+
+write_sf(world, dsn = gpkg, layer = "world")
+
+st_layers(gpkg)
+
+```
+
+
+---
+
+## Geopackages
+
+```{r, eval = FALSE}
+us_states <- read_sf(gpkg, layer = "states")
+
+ut_points <- read_sf(gpkg, layer = "ut_points")
+
+world <- read_sf(gpkg, layer = "world")
+
+```
+
 
