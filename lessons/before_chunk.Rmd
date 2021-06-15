@@ -18,6 +18,7 @@ knitr::opts_chunk$set(echo = TRUE,
                       message = FALSE,
                       error = TRUE,
                       collapse = TRUE, # code and output in same block
+                      strip.white = TRUE,
                       fig.align = "center",
                       fig.retina = 2,
                       fig.asp = 0.7)
@@ -106,6 +107,41 @@ xaringanExtra::use_tachyons()
   clear: both;
 }
 
+```
+
+<!-- knit_hook: collapse and strip white 
+this is a Blake hack -->
+
+```{r, include = FALSE, eval = FALSE}
+local({
+  
+  hook_source <- knitr::knit_hooks$get('source')
+  knitr::knit_hooks$set(source = function(x, options) {
+    
+    is_blank2 = function(x) {
+      
+      if (length(x)) all(grepl('^\\s*$', x)) else TRUE
+      
+    }
+    
+    strip_white2 = function(x, test_strip = is_blank2) {
+      if (!length(x)) return(x)
+      while (test_strip(x[1])) {
+        x = x[-1]; if (!length(x)) return(x)
+      }
+      while (test_strip(x[(n <- length(x))])) {
+        x = x[-n]; if (n < 2) return(x)
+      }
+      x
+    }
+    
+    x <- xfun::split_lines(x)
+    x <- strip_white2(x)
+    x <- paste(x, sep = '', collapse = '\n')
+    hook_source(x, options)
+  })
+  
+})
 ```
 
 <!-- knit_hook: collapse and print error red

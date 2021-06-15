@@ -1,6 +1,7 @@
 
 ---
-title: "Spatial and Attribute Operations"
+title: "GIS Operations in R"
+subtitle: "Working with Spatial and Attribute Data"
 date: '`r Sys.Date()`'
 output:
   xaringan::moon_reader:
@@ -18,8 +19,485 @@ output:
 
 ## Outline
 
-1.
-2.
-2.
-2.
-2.
+1. Setup
+2. Rasters
+    * Attribute operations
+    * Spatial operations
+2. Vectors
+    * Attribute operations
+    * Spatial operations
+
+
+---
+
+## Setup
+
+```{r, eval = FALSE}
+install.packagess(c("dplyr", "tidyr"))
+
+```
+
+```{r}
+library(here)
+library(raster)
+library(sf)
+library(spData)
+library(tidyr)
+library(dplyr)
+
+```
+
+```{r, echo = FALSE}
+
+select <- dplyr::select
+
+```
+
+
+
+--
+count: false
+
+__Note!__ 
+
+.bg-washed-red.b--dark-gray.ba.bw1.br2.shadow-5.pa2.mt0[
+
+`dplyr` and `raster` both contain a `select()` function, but the package called last will gain priority, in this case, `dplyr`, which is fortunate, because I have never used `raster::select()`.
+
+]
+
+
+---
+
+## Rasters
+
+```{r}
+og <- c("xmn" = 432000, "ymn" = 4513100)
+
+(dem <- raster(vals = runif(100, min = 0, max = 100),
+               ncols = 10, 
+               nrows = 10, 
+               res  = c(30, 30),
+               xmn = og["xmn"],
+               xmx = og["xmn"] + (30 * 10),
+               ymn = og["ymn"],
+               ymx = og["ymn"] + (30 * 10),
+               crs = "+proj=utm +zone=12 +datum=NAD83 +units=m +no_defs"))
+
+```
+
+
+---
+
+## Rasters
+
+```{r}
+grain_char <- sample(c("clay", "silt", "sand"), 100, replace = TRUE)
+grain_fact <- factor(grain_char, levels = c("clay", "silt", "sand"))
+
+(grain <- raster(vals = grain_fact,
+                 res = res(dem), 
+                 ext = extent(dem),
+                 crs = "+proj=utm +zone=12 +datum=NAD83 +units=m +no_defs"))
+
+```
+
+
+
+---
+
+## Naming
+
+```{r, fig.width = 900/72, fig.asp = 0.4}
+r_stack <- stack(dem, grain)
+
+names(r_stack) <- c("elevation", "grain")
+
+plot(r_stack)
+
+```
+
+
+---
+
+## Index subsetting
+
+```{r}
+dem[4, 7]
+
+grain[8, 3]
+
+levels(grain)
+
+```
+
+
+---
+
+## Index subsetting
+
+```{r}
+dem[4, 7] <- 99.9
+
+grain[8, 3] <- factor("sand", levels = c("clay", "silt", "sand"))
+
+```
+
+
+---
+
+## Cell subsetting
+
+```{r}
+dem[58:60]
+
+grain[98:100]
+
+```
+
+
+
+---
+
+## Logical subsetting
+
+```{r}
+i <- which(values(dem) > 90)
+
+dem[i]
+
+lookup <- levels(grain)[[1]]
+ID <- lookup[lookup$VALUE == "sand", "ID", drop = TRUE]
+
+i <- which(values(grain) == ID)
+
+grain[i]
+
+```
+
+
+
+---
+
+## Layer subsetting
+
+```{r}
+raster::subset(r_stack, "elevation")
+
+# r_stack[["elevation"]] #like a list
+
+# r_stack$elevation
+
+```
+
+
+---
+
+## Summarizing
+
+```{r}
+cellStats(dem, mean)
+
+cellStats(dem, sd)
+
+hist(dem, main = "", xlab = "elevation")
+
+```
+
+
+---
+
+## Spatial subsetting
+
+```{r}
+(xy <- cbind("x" = runif(3, min = xmin(dem), max = xmax(dem)),
+             "y" = runif(3, min = ymin(dem), max = ymax(dem))))
+
+i <- cellFromXY(dem, xy)
+
+raster::extract(dem, xy)
+
+```
+
+
+
+---
+
+## Raster subsetting
+
+```{r}
+# top right corner
+ri <- raster(xmn = xmax(dem) - 100,
+             xmx = xmax(dem),
+             ymn = ymax(dem) - 100,
+             ymx = ymax(dem),
+             res = c(30, 30),
+             crs = crs(dem))
+
+dem[ri]
+
+```
+
+
+---
+
+## Mask
+
+```{r, fig.width = 900/72, fig.asp = 0.4}
+rmask <- dem
+
+values(rmask) <- sample(c(NA, TRUE), size = ncell(dem), replace = TRUE)
+
+new_dem <- mask(dem, rmask)
+
+plot(stack(dem, new_dem), main = "")
+
+```
+
+
+
+
+---
+
+## Vectors
+
+```{r}
+gpkg <- here("gis", "project.gpkg")
+
+st_layers(gpkg)
+
+world <- read_sf(gpkg, layer = "world")
+
+states <- read_sf(gpkg, layer = "states")
+
+data("coffee_data", package = "spData")
+
+names(coffee_data)
+
+data("us_states_df", package = "spData")
+
+names(us_states_df)
+
+```
+
+
+---
+
+## Index subsetting
+
+```{r}
+world[1:3, "name_long"]
+
+```
+
+
+---
+
+## Logical subsetting
+
+```{r}
+i <- world$area_km2 < 10000
+
+(small_countries <- world[i, ])
+
+```
+
+
+
+---
+
+## Logical subsetting
+
+```{r}
+subset(world, area_km2 < 10000)
+
+```
+
+
+---
+
+## Selecting variables
+
+```{r}
+# world[, "name_long"]
+
+subset(world, select = "name_long")
+
+```
+
+
+---
+
+## Le pipe
+
+Just like algebraic pipes: `f(g(h(x)))` in pipe form is `x %>% h() %>% g() %>% f()`
+
+```{r}
+# log(sum(exp(c(1, 3, 4, 5))))
+
+c(1, 3, 4, 5) %>% exp()
+
+c(1, 3, 4, 5) %>% exp() %>% sum()
+
+c(1, 3, 4, 5) %>% exp() %>% sum() %>% log()
+
+```
+
+
+---
+
+## dplyr
+
+```{r}
+world %>% 
+  filter(area_km2 < 10000) %>% 
+  select(name_long, area_km2)
+
+```
+
+`filter()` rows and `select()` columns.
+
+
+---
+
+## Rename
+
+```{r}
+world %>% 
+  rename("area" = area_km2) %>% 
+  names()
+
+```
+
+
+
+---
+
+## Aggregate
+
+.pull-left[
+
+```{r}
+states %>% 
+  st_geometry() %>% 
+  plot()
+
+```
+
+]
+
+.pull-right[
+
+```{r}
+states %>% 
+  group_by(REGION) %>% 
+  summarize(mean_area = mean(AREA)) %>% 
+  st_geometry() %>% 
+  plot()
+
+```
+
+]
+
+
+---
+
+## Aggregate
+
+```{r}
+states %>% 
+  select(NAME, REGION, AREA, ttl__15) %>% 
+  group_by(REGION) %>% 
+  summarize(pop = sum(ttl__15),
+            n_states = n()) %>%
+  st_drop_geometry()
+  
+```
+
+
+---
+
+## Join
+
+```{r}
+world_coffee <- left_join(world, coffee_data, by = "name_long")
+
+world_coffee %>% 
+  select(name_long, coffee_production_2017) %>% 
+  filter(!is.na(coffee_production_2017))
+
+```
+
+
+---
+
+## Join
+
+```{r, fig.asp = 0.5, fig.width = 900/72}
+plot(world_coffee["coffee_production_2017"])
+
+```
+
+
+---
+
+## Join
+
+```{r}
+
+states <- 
+  states %>% 
+  rename("state" = NAME) %>% 
+  left_join(us_states_df, by = "state")
+
+names(states)
+
+```
+
+
+---
+
+## Join
+
+```{r, fig.asp = 0.5, fig.width = 900/72}
+plot(states["poverty_level_15"])
+
+```
+
+
+---
+
+## Mutate
+
+```{r}
+# world <- transform(world, pop_dens = (pop / area_km2))
+
+world <- mutate(world, 
+                pop_dens = (pop / area_km2),
+                gdp_dens = (gdpPercap / area_km2))
+
+world %>% select(name_long, pop_dens, gdp_dens)
+
+```
+
+
+---
+
+## Mutate
+
+```{r, fig.asp = 0.5, fig.width = 900/72}
+plot(world["pop_dens"])
+```
+
+
+
+
+---
+
+## Spatial subsetting
+
+
+
+
+
+

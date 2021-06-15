@@ -92,7 +92,7 @@ count: false
 
 __Note!__ 
 
-.bg-lightest-blue.b--navy.ba.bw1.br2.shadow-5.pa2.mt0[
+.bg-washed-red.b--dark-gray.ba.bw1.br2.shadow-5.pa2.mt0[
 
 * Rmarkdown assumes files are in the same folder.  
 * R scripts assume files are in project root.
@@ -181,9 +181,9 @@ _sf = data.frame_ (attributes + geometry) _+ crs + bbox_
 data("world", package = "spData")
 
 world <- subset(world, select = c(name_long, 
+                                  continent,
                                   area_km2, 
                                   pop, 
-                                  lifeExp, 
                                   gdpPercap))
 
 ```
@@ -197,12 +197,12 @@ count: false
 _sf = data.frame_ (.rred[attributes] + geometry) _+ crs + bbox_
 
 ```{r, eval = FALSE}
-plot(world[, c("area_km2", "lifeExp")])
+plot(world[, c("area_km2", "gdpPercap")])
 ```
 
 ```{r, echo = FALSE, fig.asp = 0.3, fig.width = 1100/72}
 par(mar = c(0, 1, 0, 1), oma = rep(0, 4))
-plot(world[, c("area_km2", "lifeExp")])
+plot(world[, c("area_km2", "gdpPercap")])
 ```
 
 
@@ -379,25 +379,10 @@ Simple formula: $raster = matrix + crs + bbox$
 plot(new_raster)
 ```
 
-
 ```{r, echo = FALSE, fig.width = 450/72, fig.asp = 0.8}
 par(mar = c(2, 2, 1 , 2),
     oma = rep(0, 4))
 plot(new_raster)
-
-```
-
-
----
-
-## From Scratch
-
-```{r}
-r <- raster(ncols = 10, 
-            nrows = 10, 
-            crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
-
-(r <- setValues(r, runif(ncell(r), min = 0, max = 100)))
 
 ```
 
