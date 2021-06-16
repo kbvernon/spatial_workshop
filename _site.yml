@@ -12,6 +12,7 @@ navbar:
         - text: "Spatial and attribute operations"
           href: lessons/lesson_two.html
         - text: "Geometry operations and plotting"
+          href: lessons/lesson_three.html
     - text: "worksheets"
       menu:
         - text: "Exercise One"
