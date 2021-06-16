@@ -2,6 +2,7 @@
 ```{r, include = FALSE}
 library(dplyr)
 library(ggplot2)
+library(grid)
 library(here)
 library(knitr)
 library(kableExtra)
@@ -11,21 +12,29 @@ library(sf)
 library(viridis)
 ```
 
+
+
+<!-- knitr options --->
+
 ```{r setup, echo = FALSE}
 
 knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE,
                       message = FALSE,
                       error = TRUE,
-                      collapse = TRUE, # code and output in same block
                       strip.white = TRUE,
                       fig.align = "center",
                       fig.retina = 2,
-                      fig.asp = 0.7)
+                      fig.asp = 0.7, 
+                      crop = TRUE)
 
 options(htmltools.dir.version = FALSE,
         str = strOptions(vec.len = 2))
 
+```
+
+```{r, echo = FALSE}
+knitr::knit_hooks$set(crop = knitr::hook_pdfcrop)
 ```
 
 ```{r, echo = FALSE}
@@ -35,12 +44,104 @@ knit_print.sf <- function(x, ...) print(x, n = 5)
 
 ```
 
+```{r, echo = FALSE}
+
+# define knit_print methods for sfc
+crs_parameters <- sf:::crs_parameters
+
+knit_print.sfc = function(x, ..., n = 5L, what = "Geometry set for", append = "") {
+  sep = if (length(x) != 1) "s" else ""
+  cls = substr(class(x)[1], 5, nchar(class(x)[1]))
+  cat(paste0(what, " ", length(x), " feature", sep, " ", append))
+  if (! is.null(attr(x, "n_empty"))) {
+    ne = attr(x, "n_empty")
+    if (ne > 0)
+      cat(paste0(" (with ", ne, ifelse(ne > 1, " geometries ", " geometry "), "empty)"))
+  }
+  cat("\n")
+  if (length(x)) {
+    cat(paste0("Geometry type: ", cls, "\n"))
+    u = sort(unique(sapply(x, function(x) class(x)[1])))
+    cat(paste0("Dimension:     ", paste(u, collapse = ", "), "\n"))
+  }
+  cat(    paste0("Bounding box:  "))
+  bb = signif(attr(x, "bbox"), options("digits")$digits)
+  cat(paste(paste(names(bb), bb[], sep = ": "), collapse = " "))
+  cat("\n")
+  if( !is.null( attr(x, "z_range"))) {
+    cat(paste0("z_range:       "))
+    zb = signif(attr(x, "z_range"), options("digits")$digits)
+    cat(paste(paste(names(zb), zb[], sep = ": "), collapse = " "))
+    cat("\n")
+  }
+  if( !is.null( attr(x, "m_range"))) {
+    cat(paste0("m_range:       "))
+    mb = signif(attr(x, "m_range"), options("digits")$digits)
+    cat(paste(paste(names(mb), mb[], sep = ": "), collapse = " "))
+    cat("\n")
+  }
+  # attributes: epsg, proj4string, precision
+  crs = st_crs(x)
+  if (is.na(crs))
+    cat(paste0("CRS:           NA\n"))
+  else {
+    p = crs_parameters(crs)
+    if (p$Name == "unknown") {
+      if (!is.character(crs$input) || is.na(crs$input))
+        cat(paste0("proj4string:   ", crs$proj4string, "\n"))
+      else
+        cat(paste0("CRS:           ", crs$input, "\n"))
+    } else if (p$IsGeographic)
+      cat(paste0("Geodetic CRS:  ", p$Name, "\n"))
+    else
+      cat(paste0("Projected CRS: ", p$Name, "\n"))
+    #		if (!is.na(crs$epsg))
+    #			cat(paste0("epsg (SRID):    ", crs$epsg, "\n"))
+  }
+  if (attr(x, "precision") != 0.0) {
+    cat(    paste0("Precision:     "))
+    if (attr(x, "precision") < 0.0)
+      cat("float (single precision)\n")
+    else
+      cat(paste(attr(x, "precision"), "\n"))
+  } # else cat("double (default; no precision model)\n")
+  if (length(x) > n && n > 0)
+    cat(paste0("First ", n, " geometries:\n"))
+  
+  sfgs <- vector(mode = "list", length = min(n, length(x)))
+  
+  for (i in seq_len(min(n, length(x))))
+    if (!inherits(x[[i]], "sfg"))
+      print(x[[i]])
+  else
+    sfgs[[i]] <- format(x[[i]], width = 50)
+  
+  sfgs <- paste0(sfgs, collapse = "\n")
+  cat(sfgs)
+  
+  invisible(x)
+}
+
+```
+
+```{r, echo = FALSE}
+
+# define knit_print methods for sfg
+knit_print.sfg = function(x, ..., width = 50) {
+	f = format(x, ..., width = width)
+	message(f)
+	invisible(f)
+}
+
+```
+
+
+
+<!-- xaringanExtra options --->
 
 ```{r xaringan-themer, include = FALSE, warning = FALSE}
 
 library(xaringanthemer)
-
-extra_css <- list(".rred" = list("color" = "var(--text-bold-color)")) 
 
 style_duo_accent(
   primary_color = "#5e5e5e",
@@ -49,10 +150,9 @@ style_duo_accent(
   inverse_header_color = "#FFFFFF",
   code_font_google = google_font("Fira Mono"),
   code_font_size = "0.8rem",
-  header_h1_font_size = "45px",
+  header_h1_font_size = "55px",
   header_h2_font_size = "35px",
-  header_h3_font_size = "20px",
-  extra_css = extra_css
+  header_h3_font_size = "20px"
 )
 
 ```
@@ -70,112 +170,11 @@ xaringanExtra::use_tile_view()
 xaringanExtra::use_tachyons()
 ```
 
-```{css, echo = FALSE}
-.pull-lleft {
-  float: left;
-  width: 25%;
-}
-.pull-lright {
-  float: right;
-  width: 74%;
-}
-.pull-lright ~ * {
-  clear: both;
-}
-
-.pull-rleft {
-  float: left;
-  width: 84%;
-}
-.pull-rright {
-  float: right;
-  width: 15%;
-}
-.pull-lright ~ * {
-  clear: both;
-}
-
-.pull-aleft {
-  float: left;
-  width: 45%;
-}
-.pull-aright {
-  float: right;
-  width: 54%;
-}
-.pull-aright ~ * {
-  clear: both;
-}
-
+```{r xaringanExtra-clipboard, echo=FALSE}
+xaringanExtra::use_clipboard()
 ```
 
-<!-- knit_hook: collapse and strip white 
-this is a Blake hack -->
-
-```{r, include = FALSE, eval = FALSE}
-local({
-  
-  hook_source <- knitr::knit_hooks$get('source')
-  knitr::knit_hooks$set(source = function(x, options) {
-    
-    is_blank2 = function(x) {
-      
-      if (length(x)) all(grepl('^\\s*$', x)) else TRUE
-      
-    }
-    
-    strip_white2 = function(x, test_strip = is_blank2) {
-      if (!length(x)) return(x)
-      while (test_strip(x[1])) {
-        x = x[-1]; if (!length(x)) return(x)
-      }
-      while (test_strip(x[(n <- length(x))])) {
-        x = x[-n]; if (n < 2) return(x)
-      }
-      x
-    }
-    
-    x <- xfun::split_lines(x)
-    x <- strip_white2(x)
-    x <- paste(x, sep = '', collapse = '\n')
-    hook_source(x, options)
-  })
-  
-})
+```{r xaringanExtra, echo = FALSE}
+xaringanExtra::use_progress_bar(color = "#CC0000", location = "top")
 ```
 
-<!-- knit_hook: collapse and print error red
-super hacky, see here: https://stackoverflow.com/a/54985678/7705429
-we'll need to be careful to not string four # together anywhere
-
-
-<script>
-$(document).ready(function() {
-  window.setTimeout(function() {
-    $(".hljs-comment:contains('####')").css("color", "red");
-    var tmp = $(".hljs-comment:contains('####')").text();
-    $(".hljs-comment:contains('####')").text(tmp.replace("####", "##"));
-  }, 15);
-});
-</script>
-
-```{r, include = FALSE, echo = FALSE, eval = FALSE}
-local({
-  
-  hook_error <- knitr::knit_hooks$get("error")
-  knitr::knit_hooks$set(error = function(x, options) {
-    x <- paste0("##", x)
-    x <- sub(" in eval(expr, envir, enclos)", "", x, fixed = TRUE)
-    hook_error(x, options)
-  })
-  
-  # hook_message <- knitr::knit_hooks$get("message")
-  # knitr::knit_hooks$set(message = function(x, options) {
-  #   x <- paste0("##", x)
-  #   # x <- sub(" in eval(expr, envir, enclos)", "", x, fixed = TRUE)
-  #   hook_message(x, options)
-  # })
-  
-})
-```
---->

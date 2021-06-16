@@ -3,12 +3,17 @@
   <head>
     <title>GIS Operations in R</title>
     <meta charset="utf-8" />
-    <meta name="date" content="2021-06-15" />
+    <meta name="date" content="2021-06-16" />
     <script src="libs/header-attrs/header-attrs.js"></script>
     <link href="libs/animate.css/animate.xaringan.css" rel="stylesheet" />
     <link href="libs/tile-view/tile-view.css" rel="stylesheet" />
     <script src="libs/tile-view/tile-view.js"></script>
     <link href="libs/tachyons/tachyons.min.css" rel="stylesheet" />
+    <script src="libs/clipboard/clipboard.min.js"></script>
+    <link href="libs/xaringanExtra-clipboard/xaringanExtra-clipboard.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-clipboard/xaringanExtra-clipboard.js"></script>
+    <script>window.xaringanExtraClipboard(null, {"button":"Copy Code","success":"Copied!","error":"Press Ctrl+C to Copy"})</script>
+    <script src="libs/xaringanExtra-progressBar/progress-bar.js"></script>
     <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
     <link rel="stylesheet" href="custom_style.css" type="text/css" />
   </head>
@@ -18,7 +23,7 @@ class: center, middle, inverse, title-slide
 
 # GIS Operations in R
 ## Working with Spatial and Attribute Data
-### 2021-06-15
+### 2021-06-16
 
 ---
 
@@ -29,6 +34,7 @@ class: center, middle, inverse, title-slide
 
 
 
+&lt;!-- knitr options ---&gt;
 
 
 
@@ -40,78 +46,69 @@ class: center, middle, inverse, title-slide
 
 
 
-&lt;style type="text/css"&gt;
-.pull-lleft {
-  float: left;
-  width: 25%;
+
+
+&lt;!-- xaringanExtra options ---&gt;
+
+
+
+
+
+
+
+
+
+
+
+<style>.xe__progress-bar__container {
+  top:0;
+  opacity: 1;
+  position:absolute;
+  right:0;
+  left: 0;
 }
-.pull-lright {
-  float: right;
-  width: 74%;
+.xe__progress-bar {
+  height: 0.25em;
+  background-color: #CC0000;
+  width: calc(var(--slide-current) / var(--slide-total) * 100%);
 }
-.pull-lright ~ * {
-  clear: both;
+.remark-visible .xe__progress-bar {
+  animation: xe__progress-bar__wipe 200ms forwards;
+  animation-timing-function: cubic-bezier(.86,0,.07,1);
 }
+@keyframes xe__progress-bar__wipe {
+  0% { width: calc(var(--slide-previous) / var(--slide-total) * 100%); }
+  100% { width: calc(var(--slide-current) / var(--slide-total) * 100%); }
+}</style>
 
-.pull-rleft {
-  float: left;
-  width: 84%;
-}
-.pull-rright {
-  float: right;
-  width: 15%;
-}
-.pull-lright ~ * {
-  clear: both;
-}
-
-.pull-aleft {
-  float: left;
-  width: 45%;
-}
-.pull-aright {
-  float: right;
-  width: 54%;
-}
-.pull-aright ~ * {
-  clear: both;
-}
-
-&lt;/style&gt;
-
-&lt;!-- knit_hook: collapse and strip white 
-this is a Blake hack --&gt;
-
-
-
-&lt;!-- knit_hook: collapse and print error red
-super hacky, see here: https://stackoverflow.com/a/54985678/7705429
-we'll need to be careful to not string four # together anywhere
-
-
-&lt;script&gt;
-$(document).ready(function() {
-  window.setTimeout(function() {
-    $(".hljs-comment:contains('####')").css("color", "red");
-    var tmp = $(".hljs-comment:contains('####')").text();
-    $(".hljs-comment:contains('####')").text(tmp.replace("####", "##"));
-  }, 15);
-});
-&lt;/script&gt;
-
-
----&gt;
 
 ## Outline
 
-1. Setup
-2. Rasters
-    * Attribute operations
-    * Spatial operations
-2. Vectors
-    * Attribute operations
-    * Spatial operations
+.pull-lleft[
 
+&lt;p style="margin-bottom:1.65em;"&gt;&lt;/p&gt;
+
+.bg-white.b--dark-gray.ba.bw1.br2.shadow-5.ph2.pv1.mh1.mt3.w-100[
+
+1. Setup
+
+2. Rasters
+  * Attribute operations
+  * Spatial operations
+    
+2. Vectors
+  * Attribute operations
+  * Spatial operations
+
+]
+
+]
+
+.pull-lright[
+
+&lt;img src="lesson_two_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto 0 auto auto;" /&gt;
+
+]
 
 ---
 
@@ -120,7 +117,6 @@ $(document).ready(function() {
 
 ```r
 install.packagess(c("dplyr", "tidyr"))
-
 ```
 
 
@@ -129,11 +125,10 @@ library(here)
 library(raster)
 library(sf)
 library(spData)
+library(spDataLarge)
 library(tidyr)
 library(dplyr)
 ```
-
-
 
 
 
@@ -142,9 +137,9 @@ count: false
 
 __Note!__ 
 
-.bg-washed-red.b--dark-gray.ba.bw1.br2.shadow-5.pa2.mt0[
+.bg-white.b--dark-gray.ba.bw1.br2.shadow-5.pa2.mt0[
 
-`dplyr` and `raster` both contain a `select()` function, but the package called last will gain priority, in this case, `dplyr`, which is fortunate, because I have never used `raster::select()`.
+`dplyr` and `raster` both contain a `select()` function. This may lead to namespace collisions.
 
 ]
 
@@ -153,246 +148,91 @@ __Note!__
 
 ## Rasters
 
+.pull-left[
+
 
 ```r
-og &lt;- c("xmn" = 432000, "ymn" = 4513100)
+fn &lt;- system.file("raster/srtm.tif", 
+                  package = "spDataLarge")
 
-(dem &lt;- raster(vals = runif(100, min = 0, max = 100),
-               ncols = 10, 
-               nrows = 10, 
-               res  = c(30, 30),
-               xmn = og["xmn"],
-               xmx = og["xmn"] + (30 * 10),
-               ymn = og["ymn"],
-               ymx = og["ymn"] + (30 * 10),
-               crs = "+proj=utm +zone=12 +datum=NAD83 +units=m +no_defs"))
-## class      : RasterLayer 
-## dimensions : 10, 10, 100  (nrow, ncol, ncell)
-## resolution : 30, 30  (x, y)
-## extent     : 432000, 432300, 4513100, 4513400  (xmin, xmax, ymin, ymax)
-## crs        : +proj=utm +zone=12 +datum=NAD83 +units=m +no_defs 
-## source     : memory
-## names      : layer 
-## values     : 0.1602362, 99.61738  (min, max)
+elevation &lt;- raster(fn)
+
+plot(elevation)
 ```
+
+]
+
+.pull-right[
+
+&lt;img src="lesson_two_files/figure-html/unnamed-chunk-6-1.png" width="500" style="display: block; margin: auto;" /&gt;
+
+]
 
 
 ---
 
-## Rasters
+## Subsetting
+
+.pull-left[
+
+By row and column
 
 
 ```r
-grain_char &lt;- sample(c("clay", "silt", "sand"), 100, replace = TRUE)
-grain_fact &lt;- factor(grain_char, levels = c("clay", "silt", "sand"))
-
-(grain &lt;- raster(vals = grain_fact,
-                 res = res(dem), 
-                 ext = extent(dem),
-                 crs = "+proj=utm +zone=12 +datum=NAD83 +units=m +no_defs"))
-## class      : RasterLayer 
-## dimensions : 10, 10, 100  (nrow, ncol, ncell)
-## resolution : 30, 30  (x, y)
-## extent     : 432000, 432300, 4513100, 4513400  (xmin, xmax, ymin, ymax)
-## crs        : +proj=utm +zone=12 +datum=NAD83 +units=m +no_defs 
-## source     : memory
-## names      : layer 
-## values     : 1, 3  (min, max)
-## attributes :
-##  ID VALUE
-##   1  clay
-##   2  silt
-##   3  sand
+# with [1, 1] being top-left
+elevation[2, 3]
 ```
 
+```
+##      
+## 1717
+```
+
+By cell number
+
+
+```r
+elevation[468]
+```
+
+```
+##      
+## 1717
+```
+
+]
+
+.pull-right[
+
+By coordinates
+
+
+```r
+x &lt;- xmin(elevation) + c(0.1, 0.2, 0.3)
+y &lt;- ymin(elevation) + c(0.1, 0.2, 0.3)
+
+# extract
+raster::extract(elevation, cbind(x, y))
+```
+
+```
+## [1] 1414 2194 2021
+```
+
+]
 
 
 ---
 
-## Naming
+## Smoothing
 
 
 ```r
-r_stack &lt;- stack(dem, grain)
-
-names(r_stack) &lt;- c("elevation", "grain")
-
-plot(r_stack)
+# use NAonly = TRUE to smooth only empty pixels
+focal(elevation, w = matrix(1, nrow = 3, ncol = 3), fun = min)
 ```
 
-&lt;img src="lesson_two_files/figure-html/unnamed-chunk-7-1.png" width="900" style="display: block; margin: auto;" /&gt;
-
-
----
-
-## Index subsetting
-
-
-```r
-dem[4, 7]
-## [1] 85.33795
-
-grain[8, 3]
-## [1] 2
-
-levels(grain)
-## [[1]]
-##   ID VALUE
-## 1  1  clay
-## 2  2  silt
-## 3  3  sand
-```
-
-
----
-
-## Index subsetting
-
-
-```r
-dem[4, 7] &lt;- 99.9
-
-grain[8, 3] &lt;- factor("sand", levels = c("clay", "silt", "sand"))
-```
-
-
----
-
-## Cell subsetting
-
-
-```r
-dem[58:60]
-## [1] 54.637524 99.431934  9.656727
-
-grain[98:100]
-## [1] 1 3 1
-```
-
-
-
----
-
-## Logical subsetting
-
-
-```r
-i &lt;- which(values(dem) &gt; 90)
-
-dem[i]
-##  [1] 95.46319 90.87811 93.71485 99.61738 95.20019 99.90000 95.81401 97.75128
-##  [9] 99.43193 94.59131 98.58789 99.02153 90.33246
-
-lookup &lt;- levels(grain)[[1]]
-ID &lt;- lookup[lookup$VALUE == "sand", "ID", drop = TRUE]
-
-i &lt;- which(values(grain) == ID)
-
-grain[i]
-##  [1] 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
-## [39] 3 3
-```
-
-
-
----
-
-## Layer subsetting
-
-
-```r
-raster::subset(r_stack, "elevation")
-## class      : RasterLayer 
-## dimensions : 10, 10, 100  (nrow, ncol, ncell)
-## resolution : 30, 30  (x, y)
-## extent     : 432000, 432300, 4513100, 4513400  (xmin, xmax, ymin, ymax)
-## crs        : +proj=utm +zone=12 +datum=NAD83 +units=m +no_defs 
-## source     : memory
-## names      : elevation 
-## values     : 0.1602362, 99.61738  (min, max)
-
-# r_stack[["elevation"]] #like a list
-
-# r_stack$elevation
-```
-
-
----
-
-## Summarizing
-
-
-```r
-cellStats(dem, mean)
-## [1] 49.0708
-
-cellStats(dem, sd)
-## [1] 31.86337
-
-hist(dem, main = "", xlab = "elevation")
-```
-
-&lt;img src="lesson_two_files/figure-html/unnamed-chunk-13-1.png" width="504" style="display: block; margin: auto;" /&gt;
-
-
----
-
-## Spatial subsetting
-
-
-```r
-(xy &lt;- cbind("x" = runif(3, min = xmin(dem), max = xmax(dem)),
-             "y" = runif(3, min = ymin(dem), max = ymax(dem))))
-##             x       y
-## [1,] 432026.9 4513324
-## [2,] 432036.9 4513289
-## [3,] 432055.3 4513177
-
-i &lt;- cellFromXY(dem, xy)
-
-raster::extract(dem, xy)
-## [1] 21.60385 37.58302 57.01203
-```
-
-
-
----
-
-## Raster subsetting
-
-
-```r
-# top right corner
-ri &lt;- raster(xmn = xmax(dem) - 100,
-             xmx = xmax(dem),
-             ymn = ymax(dem) - 100,
-             ymx = ymax(dem),
-             res = c(30, 30),
-             crs = crs(dem))
-
-dem[ri]
-## [1] 90.87811 71.99528 44.08269 19.08019 13.93791 47.94131 77.43589 86.92688
-## [9] 13.42028
-```
-
-
----
-
-## Mask
-
-
-```r
-rmask &lt;- dem
-
-values(rmask) &lt;- sample(c(NA, TRUE), size = ncell(dem), replace = TRUE)
-
-new_dem &lt;- mask(dem, rmask)
-
-plot(stack(dem, new_dem), main = "")
-```
-
-&lt;img src="lesson_two_files/figure-html/unnamed-chunk-16-1.png" width="900" style="display: block; margin: auto;" /&gt;
-
+&lt;img src="https://geocompr.robinlovelace.net/figures/04_focal_example.png" width="70%" style="display: block; margin: auto;" /&gt;
 
 
 
@@ -405,111 +245,51 @@ plot(stack(dem, new_dem), main = "")
 gpkg &lt;- here("gis", "project.gpkg")
 
 st_layers(gpkg)
+```
+
+```
 ## Driver: GPKG 
 ## Available layers:
 ##   layer_name geometry_type features fields
 ## 1     states Multi Polygon       49      6
-## 2  ut_points         Point      100      0
-## 3      world Multi Polygon      177      5
+## 2      world Multi Polygon      177      5
+## 3  ut_points            NA     4800      2
+```
 
+```r
 world &lt;- read_sf(gpkg, layer = "world")
 
 states &lt;- read_sf(gpkg, layer = "states")
-
-data("coffee_data", package = "spData")
-
-names(coffee_data)
-## [1] "name_long"              "coffee_production_2016" "coffee_production_2017"
-
-data("us_states_df", package = "spData")
-
-names(us_states_df)
-## [1] "state"            "median_income_10" "median_income_15" "poverty_level_10"
-## [5] "poverty_level_15"
-```
-
-
----
-
-## Index subsetting
-
-
-```r
-world[1:3, "name_long"]
-## Simple feature collection with 3 features and 1 field
-## Geometry type: MULTIPOLYGON
-## Dimension:     XY
-## Bounding box:  xmin: -180 ymin: -18.28799 xmax: 180 ymax: 27.65643
-## Geodetic CRS:  WGS 84
-## # A tibble: 3 x 2
-##   name_long                                                                 geom
-##   &lt;chr&gt;                                                       &lt;MULTIPOLYGON [°]&gt;
-## 1 Fiji          (((180 -16.06713, 180 -16.55522, 179.3641 -16.80135, 178.7251 -~
-## 2 Tanzania      (((33.90371 -0.95, 34.07262 -1.05982, 37.69869 -3.09699, 37.766~
-## 3 Western Saha~ (((-8.66559 27.65643, -8.665124 27.58948, -8.6844 27.39574, -8.~
-```
-
-
----
-
-## Logical subsetting
-
-
-```r
-i &lt;- world$area_km2 &lt; 10000
-
-(small_countries &lt;- world[i, ])
-## Simple feature collection with 7 features and 5 fields
-## Geometry type: MULTIPOLYGON
-## Dimension:     XY
-## Bounding box:  xmin: -67.24243 ymin: -16.59785 xmax: 167.8449 ymax: 50.12805
-## Geodetic CRS:  WGS 84
-## # A tibble: 7 x 6
-##   name_long  continent area_km2     pop gdpPercap                           geom
-##   &lt;chr&gt;      &lt;chr&gt;        &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;             &lt;MULTIPOLYGON [°]&gt;
-## 1 Puerto Ri~ North Am~    9225. 3534874    35066. (((-66.28243 18.51476, -65.77~
-## 2 Palestine  Asia         5037. 4294682     4320. (((35.39756 31.48909, 34.9274~
-## 3 Vanuatu    Oceania      7490.  258850     2892. (((167.2168 -15.89185, 167.84~
-## 4 Luxembourg Europe       2417.  556319    93655. (((6.043073 50.12805, 6.24275~
-## 5 Northern ~ Asia         3786.      NA       NA  (((32.73178 35.14003, 32.8024~
-## # ... with 2 more rows
 ```
 
 
 
 ---
+class: bg_pipe
 
-## Logical subsetting
+## Piping
 
+&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;
 
-```r
-subset(world, area_km2 &lt; 10000)
-## Simple feature collection with 7 features and 5 fields
-## Geometry type: MULTIPOLYGON
-## Dimension:     XY
-## Bounding box:  xmin: -67.24243 ymin: -16.59785 xmax: 167.8449 ymax: 50.12805
-## Geodetic CRS:  WGS 84
-## # A tibble: 7 x 6
-##   name_long  continent area_km2     pop gdpPercap                           geom
-##   &lt;chr&gt;      &lt;chr&gt;        &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;             &lt;MULTIPOLYGON [°]&gt;
-## 1 Puerto Ri~ North Am~    9225. 3534874    35066. (((-66.28243 18.51476, -65.77~
-## 2 Palestine  Asia         5037. 4294682     4320. (((35.39756 31.48909, 34.9274~
-## 3 Vanuatu    Oceania      7490.  258850     2892. (((167.2168 -15.89185, 167.84~
-## 4 Luxembourg Europe       2417.  556319    93655. (((6.043073 50.12805, 6.24275~
-## 5 Northern ~ Asia         3786.      NA       NA  (((32.73178 35.14003, 32.8024~
-## # ... with 2 more rows
-```
+.bg-white-60.br3.pa2.center[
+Some basic rules:
+
+`x %&gt;% f` is equivalent to `f(x)`  
+`x %&gt;% f(y)` is equivalent to `f(x, y)`  
+`x %&gt;% f %&gt;% g` is equivalent to `g(f(x))` &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
+]
 
 
 ---
 
-## Selecting variables
+## `select()` columns
 
 
 ```r
-# world[, "name_long"]
+world %&gt;% select(name_long)
+```
 
-subset(world, select = "name_long")
+```
 ## Simple feature collection with 177 features and 1 field
 ## Geometry type: MULTIPOLYGON
 ## Dimension:     XY
@@ -526,209 +306,46 @@ subset(world, select = "name_long")
 ## # ... with 172 more rows
 ```
 
-
 ---
 
-## Le pipe
-
-Just like algebraic pipes: `f(g(h(x)))` in pipe form is `x %&gt;% h() %&gt;% g() %&gt;% f()`
+## `filter()` rows
 
 
 ```r
-# log(sum(exp(c(1, 3, 4, 5))))
-
-c(1, 3, 4, 5) %&gt;% exp()
-## [1]   2.718282  20.085537  54.598150 148.413159
-
-c(1, 3, 4, 5) %&gt;% exp() %&gt;% sum()
-## [1] 225.8151
-
-c(1, 3, 4, 5) %&gt;% exp() %&gt;% sum() %&gt;% log()
-## [1] 5.419717
+world %&gt;% filter(area_km2 &lt; 10000)
 ```
 
-
----
-
-## dplyr
-
-
-```r
-world %&gt;% 
-  filter(area_km2 &lt; 10000) %&gt;% 
-  select(name_long, area_km2)
-## Simple feature collection with 7 features and 2 fields
+```
+## Simple feature collection with 7 features and 5 fields
 ## Geometry type: MULTIPOLYGON
 ## Dimension:     XY
 ## Bounding box:  xmin: -67.24243 ymin: -16.59785 xmax: 167.8449 ymax: 50.12805
 ## Geodetic CRS:  WGS 84
-## # A tibble: 7 x 3
-##   name_long     area_km2                                                    geom
-##   &lt;chr&gt;            &lt;dbl&gt;                                      &lt;MULTIPOLYGON [°]&gt;
-## 1 Puerto Rico      9225. (((-66.28243 18.51476, -65.7713 18.42668, -65.591 18.2~
-## 2 Palestine        5037. (((35.39756 31.48909, 34.92741 31.35344, 34.97051 31.6~
-## 3 Vanuatu          7490. (((167.2168 -15.89185, 167.8449 -16.46633, 167.5152 -1~
-## 4 Luxembourg       2417. (((6.043073 50.12805, 6.242751 49.90223, 6.18632 49.46~
-## 5 Northern Cyp~    3786. (((32.73178 35.14003, 32.80247 35.1455, 32.94696 35.38~
+## # A tibble: 7 x 6
+##   name_long  continent area_km2     pop gdpPercap                           geom
+## * &lt;chr&gt;      &lt;chr&gt;        &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;             &lt;MULTIPOLYGON [°]&gt;
+## 1 Puerto Ri~ North Am~    9225. 3534874    35066. (((-66.28243 18.51476, -65.77~
+## 2 Palestine  Asia         5037. 4294682     4320. (((35.39756 31.48909, 34.9274~
+## 3 Vanuatu    Oceania      7490.  258850     2892. (((167.2168 -15.89185, 167.84~
+## 4 Luxembourg Europe       2417.  556319    93655. (((6.043073 50.12805, 6.24275~
+## 5 Northern ~ Asia         3786.      NA       NA  (((32.73178 35.14003, 32.8024~
 ## # ... with 2 more rows
 ```
-
-`filter()` rows and `select()` columns.
 
 
 ---
 
-## Rename
+## `mutate()` variables
 
 
 ```r
 world %&gt;% 
-  rename("area" = area_km2) %&gt;% 
-  names()
-## [1] "name_long" "continent" "area"      "pop"       "gdpPercap" "geom"
+  mutate(pop_dens = (pop / area_km2),
+         gdp_dens = (gdpPercap / area_km2)) %&gt;% 
+  select(name_long, pop_dens, gdp_dens)
 ```
 
-
-
----
-
-## Aggregate
-
-.pull-left[
-
-
-```r
-states %&gt;% 
-  st_geometry() %&gt;% 
-  plot()
 ```
-
-&lt;img src="lesson_two_files/figure-html/unnamed-chunk-25-1.png" width="504" style="display: block; margin: auto;" /&gt;
-
-]
-
-.pull-right[
-
-
-```r
-states %&gt;% 
-  group_by(REGION) %&gt;% 
-  summarize(mean_area = mean(AREA)) %&gt;% 
-  st_geometry() %&gt;% 
-  plot()
-```
-
-&lt;img src="lesson_two_files/figure-html/unnamed-chunk-26-1.png" width="504" style="display: block; margin: auto;" /&gt;
-
-]
-
-
----
-
-## Aggregate
-
-
-```r
-states %&gt;% 
-  select(NAME, REGION, AREA, ttl__15) %&gt;% 
-  group_by(REGION) %&gt;% 
-  summarize(pop = sum(ttl__15),
-            n_states = n()) %&gt;%
-  st_drop_geometry()
-## # A tibble: 4 x 3
-##   REGION         pop n_states
-## * &lt;chr&gt;        &lt;dbl&gt;    &lt;int&gt;
-## 1 Midwest   67546398       12
-## 2 Norteast  55989520        9
-## 3 South    118575377       17
-## 4 West      72264052       11
-```
-
-
----
-
-## Join
-
-
-```r
-world_coffee &lt;- left_join(world, coffee_data, by = "name_long")
-
-world_coffee %&gt;% 
-  select(name_long, coffee_production_2017) %&gt;% 
-  filter(!is.na(coffee_production_2017))
-## Simple feature collection with 34 features and 2 fields
-## Geometry type: MULTIPOLYGON
-## Dimension:     XY
-## Bounding box:  xmin: -117.1278 ymin: -33.76838 xmax: 156.02 ymax: 35.49401
-## Geodetic CRS:  WGS 84
-## # A tibble: 34 x 3
-##   name_long    coffee_production_~                                          geom
-## * &lt;chr&gt;                      &lt;int&gt;                            &lt;MULTIPOLYGON [°]&gt;
-## 1 Tanzania                      66 (((33.90371 -0.95, 34.07262 -1.05982, 37.698~
-## 2 Papua New G~                  74 (((141.0002 -2.600151, 142.7352 -3.289153, 1~
-## 3 Indonesia                    360 (((141.0002 -2.600151, 141.0171 -5.859022, 1~
-## 4 Kenya                         50 (((39.20222 -4.67677, 37.7669 -3.67712, 37.6~
-## 5 Timor-Leste                    2 (((124.9687 -8.89279, 125.0862 -8.656887, 12~
-## # ... with 29 more rows
-```
-
-
----
-
-## Join
-
-
-```r
-plot(world_coffee["coffee_production_2017"])
-```
-
-&lt;img src="lesson_two_files/figure-html/unnamed-chunk-29-1.png" width="900" style="display: block; margin: auto;" /&gt;
-
-
----
-
-## Join
-
-
-```r
-
-states &lt;- 
-  states %&gt;% 
-  rename("state" = NAME) %&gt;% 
-  left_join(us_states_df, by = "state")
-
-names(states)
-##  [1] "GEOID"            "state"            "REGION"           "AREA"            
-##  [5] "ttl__10"          "ttl__15"          "geom"             "median_income_10"
-##  [9] "median_income_15" "poverty_level_10" "poverty_level_15"
-```
-
-
----
-
-## Join
-
-
-```r
-plot(states["poverty_level_15"])
-```
-
-&lt;img src="lesson_two_files/figure-html/unnamed-chunk-31-1.png" width="900" style="display: block; margin: auto;" /&gt;
-
-
----
-
-## Mutate
-
-
-```r
-# world &lt;- transform(world, pop_dens = (pop / area_km2))
-
-world &lt;- mutate(world, 
-                pop_dens = (pop / area_km2),
-                gdp_dens = (gdpPercap / area_km2))
-
-world %&gt;% select(name_long, pop_dens, gdp_dens)
 ## Simple feature collection with 177 features and 3 fields
 ## Geometry type: MULTIPOLYGON
 ## Dimension:     XY
@@ -748,26 +365,198 @@ world %&gt;% select(name_long, pop_dens, gdp_dens)
 
 ---
 
-## Mutate
+## `rename()` variables
 
 
 ```r
-plot(world["pop_dens"])
+world %&gt;% 
+  rename("area" = area_km2) %&gt;% 
+  names()
 ```
 
-&lt;img src="lesson_two_files/figure-html/unnamed-chunk-33-1.png" width="900" style="display: block; margin: auto;" /&gt;
-
+```
+## [1] "name_long" "continent" "area"      "pop"       "gdpPercap" "geom"
+```
 
 
 
 ---
 
-## Spatial subsetting
+## `summarize()` groups
+
+.pull-left[
+
+
+```r
+states %&gt;% 
+  # do something here
+  # do another thing
+  st_geometry() %&gt;% 
+  plot()
+```
+
+&lt;img src="lesson_two_files/figure-html/unnamed-chunk-17-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+]
+
+.pull-right[
+
+
+```r
+states %&gt;% 
+  group_by(REGION) %&gt;% 
+  summarize(mean_area = mean(AREA)) %&gt;% 
+  st_geometry() %&gt;% 
+  plot()
+```
+
+&lt;img src="lesson_two_files/figure-html/unnamed-chunk-18-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+]
+
+
+---
+
+## `summarize()` groups
+
+
+```r
+states %&gt;% 
+  select(NAME, REGION, AREA, ttl__15) %&gt;% 
+  group_by(REGION) %&gt;% 
+  summarize(pop = sum(ttl__15),
+            n_states = n()) %&gt;%
+  st_drop_geometry()
+```
+
+```
+## # A tibble: 4 x 3
+##   REGION         pop n_states
+## * &lt;chr&gt;        &lt;dbl&gt;    &lt;int&gt;
+## 1 Midwest   67546398       12
+## 2 Norteast  55989520        9
+## 3 South    118575377       17
+## 4 West      72264052       11
+```
+
+
+---
+
+## `*_join()` tables
+
+
+```r
+world_coffee &lt;- world %&gt;% left_join(coffee_data)
+
+select(world_coffee, name_long, coffee_production_2017)
+```
+
+```
+## Simple feature collection with 177 features and 2 fields
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: -180 ymin: -90 xmax: 180 ymax: 83.64513
+## Geodetic CRS:  WGS 84
+## # A tibble: 177 x 3
+##   name_long    coffee_production~                                           geom
+##   &lt;chr&gt;                     &lt;int&gt;                             &lt;MULTIPOLYGON [°]&gt;
+## 1 Fiji                         NA (((180 -16.06713, 180 -16.55522, 179.3641 -16~
+## 2 Tanzania                     66 (((33.90371 -0.95, 34.07262 -1.05982, 37.6986~
+## 3 Western Sah~                 NA (((-8.66559 27.65643, -8.665124 27.58948, -8.~
+## 4 Canada                       NA (((-122.84 49, -122.9742 49.00254, -124.9102 ~
+## 5 United Stat~                 NA (((-122.84 49, -120 49, -117.0312 49, -116.04~
+## # ... with 172 more rows
+```
+
+
+---
+
+## `*_join()` tables
+
+
+```r
+plot(world_coffee["coffee_production_2017"])
+```
+
+&lt;img src="lesson_two_files/figure-html/unnamed-chunk-22-1.png" width="75%" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+## `st_filter()` geometries
+
+.pull-left[
+
+
+```r
+# sample
+rand_ohs &lt;- states %&gt;% 
+  st_sample(size = 100) %&gt;% 
+  st_sf()
+```
+
+&lt;img src="lesson_two_files/figure-html/unnamed-chunk-24-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+]
+
+--
+count: false
+
+.pull-right[
+
+
+```r
+the_west &lt;- states %&gt;% filter(REGION == "West")
+# spatial filter
+westers &lt;- rand_ohs %&gt;% 
+  st_filter(the_west, .predicate = st_intersects)
+```
+
+&lt;img src="lesson_two_files/figure-html/unnamed-chunk-26-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+]
+
+
+---
+
+## `st_filter()` geometries
+
+.pull-left[
+
+
+```r
+goats &lt;- rand_ohs %&gt;% 
+  st_filter(the_west, 
+            .predicate = st_is_within_distance, 
+            dist = 500000)
+```
+
+&lt;img src="lesson_two_files/figure-html/unnamed-chunk-28-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+]
+
+--
+count: false
+
+.pull-right[
 
 
 
 
+```r
+easters &lt;- rand_ohs %&gt;% 
+  # made-up function 
+  st_filter(the_west, 
+            .predicate = st_not_intersects)
+```
 
+&lt;img src="lesson_two_files/figure-html/unnamed-chunk-31-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+]
+
+---
+
+## `st_join()` geometries
 
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>

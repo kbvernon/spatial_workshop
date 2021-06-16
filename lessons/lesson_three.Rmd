@@ -1,0 +1,15 @@
+
+---
+title: "Spatial Data in R"
+subtitle: "A blisteringly fast introduction"
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: [xaringan-themer.css, custom_style.css]
+    nature:
+      highlightStyle: magula
+      highlightLines: TRUE
+      countIncrementalSlides: TRUE
+      ratio: '16:9'
+---

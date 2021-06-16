@@ -1,6 +1,7 @@
 
 ---
 title: "Spatial Data in R"
+subtitle: "A reckless romp through the basics"
 date: '`r Sys.Date()`'
 output:
   xaringan::moon_reader:
@@ -9,7 +10,6 @@ output:
     nature:
       highlightStyle: magula
       highlightLines: TRUE
-      countIncrementalSlides: TRUE
       ratio: '16:9'
 ---
 
@@ -18,22 +18,194 @@ output:
 
 ## Outline
 
+.pull-lleft[
+
+<p style="margin-bottom:1.65em;"></p>
+
+.bg-white.b--dark-gray.ba.bw1.br2.shadow-5.ph2.pv1.mh1.mt3.w-100[
+
 1. Setup
-2. Spatial Data Models
-2. Coordinate Reference Systems
-2. Simple Features (`sf`)
+
+2. Vectors
+    - Basic plotting
+    - Reading and writing
+    - Projecting
+    
 2. Rasters
-2. Projecting
-2. Reading and Writing
+    - Basic plotting
+    - Reading and writing
+    - Projecting
+
+]
+
+]
+
+.pull-lright[
+
+```{r, echo = FALSE, fig.width = 800/72, fig.asp = 0.8, out.width = "90%", fig.align = "right"}
+
+par(pty = "s",
+    mfrow = c(1, 2),
+    mar = c(2,2,2,0),
+    oma = rep(1, 4))
+
+plot(0,
+     type = "n",
+     xlim = c(0, 10),
+     ylim = c(0, 10),
+     xlab = "",
+     ylab = "",
+     xaxs = "i",
+     yaxs = "i",
+     xaxt = "n",
+     yaxt = "n")
+
+title(main = "Vector", 
+      adj = 0, 
+      line = 0.3,
+      cex.main = 2)
+
+xy <- par("usr")
+
+rect(xleft = xy[1],
+     xright = xy[2],
+     ybottom = xy[3],
+     ytop = xy[4],
+     col = adjustcolor("#d4fcf5", alpha.f = 0.3))
+
+box()
+
+rect(xleft = 5,
+     xright = 9,
+     ybottom = 2,
+     ytop = 6,
+     col = adjustcolor("#de8500", alpha.f = 0.9),
+     border = "#693f00",
+     lwd = 3)
+
+set.seed(12345)
+
+n <- 20
+
+x <- pmin(9.7, pmax(0.3, rnorm(n, mean = 3, sd = 1.5)))
+y <- pmin(9.7, pmax(0.3, rnorm(n, mean = 6, sd = 1.5)))
+
+points(x = x,
+       y = y,
+       bg = adjustcolor("#edc600", alpha.f = 0.6),
+       col = "#967e02",
+       pch = 21,
+       lwd = 2,
+       cex = 4)
+
+lines(x = c(0.3, 0.3, 2.0, 2.5, 8.5, 9.8, 9.8),
+      y = c(7.0, 0.3, 2.5, 1.5, 6.5, 9.8, 0.3),
+      col = adjustcolor("#fffb00", alpha.f = 0.5),
+      lwd = 10)
+
+lines(x = c(0.3, 0.3, 2.0, 2.5, 8.5, 9.8, 9.8),
+      y = c(7.0, 0.3, 2.5, 1.5, 6.5, 9.8, 0.3),
+      col = "#d44402",
+      lwd = 5)
+
+
+
+m <- matrix(runif(100, min = 0, max = 100),
+            nrow = 10,
+            ncol = 10)
+
+image(x = seq(0.5, 9.5, by = 1),
+      y = seq(0.5, 9.5, by = 1),
+      z = m,
+      col = terrain.colors(100),
+      xlim = c(0, 10),
+      ylim = c(0, 10),
+      xlab = "",
+      ylab = "",
+      xaxt = "n",
+      yaxt = "n")
+
+title(main = "Raster", 
+      adj = 0, 
+      line = 0.3,
+      cex.main = 2)
+
+grid(nx = 10,
+     ny = 10,
+     lty = 1,
+     col = "gray50")
+
+box()
+
+```
+
+]
 
 
 ---
 
 ## Setup
 
+.pull-left[
 
-* Create R project folder  
-* Add _data_, _gis_, and _R_ folders  
+```{r, echo = FALSE, out.width = "90%"}
+
+knitr::include_graphics("figures/new_project_window.png")
+
+```
+
+]
+
+.pull-right[
+
+Create an R project folder  
+
+- Go to _File_ > _New Project..._ > _New Directory_, 
+- Specify a suitable folder name (no spaces!),   
+- Choose an appropriate directory for the folder,  
+- Click _Create Project_.
+
+]
+
+
+
+
+
+
+---
+
+## Setup
+
+.pull-left[
+
+```{r, echo = FALSE, fig.asp = 3, out.width = "80%"}
+
+knitr::include_graphics("figures/new_folder.png")
+
+```
+
+]
+  
+.pull-right[
+
+Add _data_, _gis_, and _R_ folders
+  
+- In the View pane, go to the _Files_ tab,
+- Click _New Folder_ and type the name of the folder, 
+- Click _OK_.
+
+]
+
+
+---
+
+## Setup
+
+* Download and open _lesson_one.Rmd_.
+  - In the Console, type 
+
+
+
 * Install packages  
 
 ```{r, eval = FALSE}
@@ -58,117 +230,41 @@ library(sf)
 
 ## Where is here?
 
-The `here` package is your friend.
+.pull-left[
 
-.pull-aleft[
+```{r, echo = FALSE, out.width = "100%"}
+
+knitr::include_graphics("figures/allison_horst_here.png")
+
+```
+
+.center[Artwork by [Allison Horst](https://github.com/allisonhorst/stats-illustrations)]
+
+]
+
+.pull-right[
+
+<br>
+
+The [`here`](https://here.r-lib.org/) package is your friend. [Ask anyone](https://github.com/jennybc/here_here).
 
 ```{r, eval = FALSE}
 file.path()
 ## character(0)
 
 here()
-## [1] "C:/Users/bob/stuff/spatial_workshop"
-```
+## [1] "C:/Users/bob/spatial_workshop"
 
-]
-
-.pull-aright[
-
-```{r, eval = FALSE}
 file.path("R", "script.R")
 ## [1] "R/script.R"
 
 here("R", "script.R")
-## [1] "C:/Users/bob/stuff/spatial_workshop/R/script.R"
+## [1] "C:/Users/bob/spatial_workshop/R/script.R"
 
 ```
 
 ]
 
---
-count: false
-
-.pull-aright[
-
-__Note!__ 
-
-.bg-washed-red.b--dark-gray.ba.bw1.br2.shadow-5.pa2.mt0[
-
-* Rmarkdown assumes files are in the same folder.  
-* R scripts assume files are in project root.
-
-]
-
-]
-
-
-
-
----
-
-## Spatial Data Models
-
-```{r, echo = FALSE, fig.width = 700/72}
-
-par(pty = "s",
-    mfrow = c(1, 2),
-    mar = c(2,2,2,0),
-    oma = rep(0, 4))
-
-plot(0,
-     type = "n",
-     xlim = c(0, 10),
-     ylim = c(0, 10),
-     xlab = "",
-     ylab = "",
-     xaxs = "i",
-     yaxs = "i")
-
-title(main = "Vector", 
-      adj = 0, 
-      line = 0.3,
-      cex.main = 2)
-
-points(x = c(4.3, 7.2, 8.7),
-       y = c(4.6, 9.4, 1.5),
-       pch = 19,
-       cex = 1.3)
-
-lines(x = c(2.5, 8.5),
-      y = c(1.5, 6.5),
-      lwd = 2)
-
-polygon(x = c(2, 2, 4, 4, 2),
-        y = c(6, 8, 8, 6, 6),
-        col = adjustcolor("lightgray", alpha.f = 0.6))
-
-m <- matrix(runif(100, min = 0, max = 100),
-            nrow = 10,
-            ncol = 10)
-
-image(x = seq(0.5, 9.5, by = 1),
-      y = seq(0.5, 9.5, by = 1),
-      z = m,
-      col = terrain.colors(100),
-      xlim = c(0, 10),
-      ylim = c(0, 10),
-      xlab = "",
-      ylab = "",
-      yaxt = "n")
-
-title(main = "Raster", 
-      adj = 0, 
-      line = 0.3,
-      cex.main = 2)
-
-grid(nx = 10,
-     ny = 10,
-     lty = 1,
-     col = "gray50")
-
-box()
-
-```
 
 
 ---
@@ -177,7 +273,8 @@ box()
 
 _sf = data.frame_ (attributes + geometry) _+ crs + bbox_
 
-```{r}
+```{r, echo = FALSE, out.width = "55%"}
+
 data("world", package = "spData")
 
 world <- subset(world, select = c(name_long, 
@@ -186,8 +283,11 @@ world <- subset(world, select = c(name_long,
                                   pop, 
                                   gdpPercap))
 
+knitr::include_graphics("figures/allison_horst_sf.png")
+
 ```
 
+.center[Artwork by [Allison Horst](https://github.com/allisonhorst/stats-illustrations)]
 
 ---
 count: false
@@ -197,12 +297,16 @@ count: false
 _sf = data.frame_ (.rred[attributes] + geometry) _+ crs + bbox_
 
 ```{r, eval = FALSE}
-plot(world[, c("area_km2", "gdpPercap")])
+
+plot(world["area_km2"])
+
 ```
 
-```{r, echo = FALSE, fig.asp = 0.3, fig.width = 1100/72}
-par(mar = c(0, 1, 0, 1), oma = rep(0, 4))
-plot(world[, c("area_km2", "gdpPercap")])
+
+```{r, echo = FALSE, fig.asp = 0.4, fig.width = 900/72, out.width = "75%"}
+
+plot(world["area_km2"], key.pos = NULL, main = NULL)
+
 ```
 
 
@@ -213,13 +317,10 @@ count:false
 
 _sf = data.frame_ (attributes + .rred[geometry]) _+ crs + bbox_
 
-```{r, eval = FALSE}
-plot(st_geometry(world))
-```
+```{r, fig.asp = 0.4, fig.width = 900/72, out.width = "75%"}
 
-```{r, echo = FALSE, fig.asp = 0.5, fig.width = 900/72}
-par(mar = c(0, 1, 0, 1), oma = rep(0, 4))
 plot(st_geometry(world))
+
 ```
 
 
@@ -293,575 +394,6 @@ st_sf(id = 1:2,
 
 Similar to `data.frame(col1 = ..., col2 = ...)`, but with a geometry column.
 
----
 
-## Geometry types
-
-```{r, echo = FALSE, out.width = "50%"}
-
-knitr::include_graphics("https://geocompr.robinlovelace.net/figures/sf-classes.png")
-
-```
-
-
----
-
-## Geometry types
-
-```{r}
-small_world <- world[1:5, ]
-
-st_geometry_type(small_world)
-
-```
-
---
-
-## Constructors
-
-.pull-left[
-
-Using `c()` and `matrix()`
-
-* `st_point()`
-* `st_multipoint()`
-* `st_linestring()`
-
-]
-
-.pull-right[
-
-Using `list()`
-
-* `st_polygon()`
-* `st_multilinestring()`
-* `st_multipolygon()`
-* `st_geometrycollection()`
-
-]
-
-
----
-
-## Bounding Box
-
-```{r}
-st_bbox(world)
-
-```
-
-
-
-
-
-
----
-
-## Raster
-
-Simple formula: $raster = matrix + crs + bbox$
-
-```{r}
-fn <- system.file("raster/srtm.tif", package = "spDataLarge")
-
-(new_raster <- raster(fn))
-
-```
-
-
----
-
-## Raster
-
-Simple formula: $raster = matrix + crs + bbox$
-
-```{r, eval = FALSE}
-plot(new_raster)
-```
-
-```{r, echo = FALSE, fig.width = 450/72, fig.asp = 0.8}
-par(mar = c(2, 2, 1 , 2),
-    oma = rep(0, 4))
-plot(new_raster)
-
-```
-
-
----
-
-## Bounding Box
-
-```{r}
-extent(new_raster)
-
-```
-
-
----
-
-## Raster brick
-
-Multispectral data, loaded from a single file with multiple layers.
-
-```{r}
-fn <- system.file("raster/landsat.tif", 
-                  package = "spDataLarge")
-
-(r_brick = brick(fn))
-
-```
-
-
----
-
-## Raster stack
-
-Different variables in a "list", loaded from multiple files with single layers.
-
-```{r}
-(r_stack <- stack(new_raster, new_raster))
-
-```
-
-
-
----
-
-## Coordinate Reference System
-
-.pull-left[
-
-Geographic CRS  
-
-* Latitude and Longitude  
-* Spherical  
-* Equatorial and Polar radii  
-
-]
-
-.pull-right[
-
-Projected CRS  
-
-* Easting and Northing (x and y)  
-* Origin
-* Conic, cylindrical, and planar  
-
-]
-
-
----
-
-## CRS in R
-
-.pull-left[
-
-`sf` uses WKT
-
-```{r}
-st_crs(world)
-
-```
-
-]
-
-.pull-right[
-
-`raster` uses proj4string
-
-```{r}
-projection(new_raster)
-
-crs(new_raster)
-```
-
-]
-
-
----
-
-## Units
-
-This is actually a fairly novel aspect of `sf` and the whole R ecosystem.
-
-```{r}
-luxembourg <- subset(world, name_long == "Luxembourg")
-
-st_area(luxembourg)
-
-units::set_units(st_area(luxembourg), km^2)
-
-```
-
-<br>
-
---
-count: false
-
-__Note!__ Raster does not have a concept of units, and instead relies exclusively on the CRS.
-
-
----
-
-## Projecting spatial data
-
-When to reproject?
-
-```{r}
-london_geo <- st_as_sf(data.frame(lon = -0.1, lat = 51.5),
-                       coords = c("lon", "lat"),
-                       crs = 4326)
-
-london_proj <- st_as_sf(data.frame(x = 530000, y = 180000),
-                        coords = c("x", "y"),
-                        crs = 27700)
-
-st_distance(london_geo, london_proj)
-
-```
-
-
----
-
-## Projecting vectors
-
-
-```{r}
-st_crs(london_geo)$epsg
-
-london_ogsb <- st_transform(london_geo, crs = 27700)
-
-st_crs(london_ogsb)$epsg
-
-```
-
-
-
----
-
-## Projecting vectors
-
-
-
-```{r}
-utm12 <- st_crs(26912)
-
-utm12$proj4string
-
-lambert <- st_crs("+proj=laea +lat_0=37.32 +lon_0=-113.04")
-
-lambert$proj4string
-
-```
-
-
----
-
-## Projecting rasters
-
-.pull-left[
-
-```{r cat-rast-plot, fig.show = "hide"}
-fn <- system.file("raster/nlcd2011.tif", 
-                  package = "spDataLarge")
-
-cat_raster <- raster(fn) 
-
-plot(cat_raster)
-
-```
-
-```{r, echo = FALSE, out.height = "90%"}
-
-knitr::include_graphics(file.path("lesson_one_files",
-                                  "figure-html",
-                                  "cat-rast-plot-2.png"))
-
-```
-
-
-]
-
-.pull-right[
-
-```{r, eval = FALSE}
-fn <- system.file("raster/srtm.tif", 
-                  package = "spDataLarge")
-
-con_raster = raster(fn)
-
-plot(con_raster)
-
-```
-
-```{r, echo = FALSE, fig.width = 450/72, fig.asp = 0.75}
-fn <- system.file("raster/srtm.tif", 
-                  package = "spDataLarge")
-
-con_raster = raster(fn)
-
-par(mar = c(2, 2, 1, 2),
-    oma = rep(0, 4))
-
-plot(con_raster)
-
-```
-
-
-]
-
-
----
-
-## Projecting rasters
-
-For a raster with _categorical_ data, use the nearest neighbor method.
-
-```{r}
-projectRaster(cat_raster,
-              crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
-              method = "ngb")
-
-```
-
-
----
-
-## Projecting rasters 
-
-For a raster with _continuous_ data, use the bilinear method.
-
-```{r}
-projectRaster(con_raster,
-              crs = "+proj=laea +lat_0=37.32 +lon_0=-113.04",
-              method = "bilinear")
-
-```
-
-
----
-
-## Read/Write rasters
-
-```{r, eval = !file.exists(here("gis", "srtm.tif"))}
-writeRaster(con_raster,
-            filename = here("gis", "srtm.tif"),
-            foramt = "GTiff")
-
-writeRaster(cat_raster,
-            filename = here("gis", "nlcd2011.tif"),
-            format = "GTiff")
-
-```
-
-```{r, eval = FALSE}
-con_raster <- raster(here("gis", "srtm.tif"))
-
-cat_raster <- raster(here("gis", "nlcd2011.tif"))
-
-```
-
-
-
----
-
-## Writing vectors
-
-```{r, fig.asp = 0.5, fig.width = 900/72}
-data("us_states", package = "spData")
-
-plot(st_geometry(us_states))
-
-```
-
----
-
-## Writing vectors
-
-```{r}
-st_write(us_states, dsn = here("gis", "us_states.shp"))
-
-```
-
-__dsn__ is short for __d__ata __s__ource __n__ame, can be a file, a folder, a local database, or a connection to a remote database.  
-
-
----
-
-## Writing vectors
-
-```{r}
-
-ut <- subset(us_states, NAME == "Utah")
-
-ut_points_col <- st_sample(ut, size = 100)
-
-ut_points <- st_sf(geometry = ut_points_col)
-
-plot(st_geometry(ut), col = "transparent")
-plot(st_geometry(ut_points), pch = 19, add = TRUE)
-
-```
-
-
----
-
-## Writing vectors
-
-.pull-left[
-
-If you want to save to a csv file...
-
-```{r}
-st_write(ut_points, 
-         dsn = here("data", "ut_points.csv"),
-         layer_options = "GEOMETRY=AS_XY",
-         append = FALSE)
-
-```
-
-]
-
-.pull-right[
-
-This is equivalent to:
-
-```{r, eval = FALSE}
-ut_points_matrix <- st_coordinates(ut_points)
-
-ut_points <- as.data.frame(ut_points_matrix)
-
-write.csv(ut_points, 
-          file = here("data", "ut_points.csv"), 
-          row.names = FALSE)
-
-```
-
-]
-
-
----
-
-## Writing vectors
-
-If a file or layer already exists, use `append = FALSE`.
-
-```{r, eval = FALSE}
-st_write(us_states, 
-         dsn = here("gis", "us_states.shp"),
-         append = FALSE)
-
-```
-
----
-
-## Writing vectors
-
-To suppress messages sf prints when reading or writing data, use `quiet = TRUE`.
-
-```{r, eval = FALSE}
-st_write(us_states, 
-         dsn = here("gis", "us_states.shp"),
-         quiet = TRUE)
-
-```
-
-
-
----
-
-## Writing vectors
-
-```{r, eval = TRUE}
-write_sf(us_states, 
-         dsn = here("gis", "us_states.shp"))
-
-```
-
-This is equivalent to
-
-```{r, eval = FALSE}
-st_write(us_states, 
-         dsn = here("gis", "us_states.shp"),
-         append = FALSE,
-         quiet = TRUE)
-
-```
-
-
-
-
----
-
-## Reading vectors
-
-```{r}
-us_states <- st_read(here("gis", "us_states.shp"))
-
-```
-
-
-
----
-
-## Reading vectors
-
-```{r, eval = FALSE}
-us_states <- st_read(here("gis", "us_states.shp"), quiet = TRUE)
-
-```
-
-Can also write
-
-```{r, eval = FALSE}
-us_states <- read_sf(here("gis", "us_states.shp"))
-
-```
-
-
----
-
-## Data.frame to sf
-
-```{r}
-ut_points <- read.csv(here("data", "ut_points.csv"))
-
-(ut_points <- st_as_sf(ut_points,
-                       coords = c("X", "Y"),
-                       crs = 26912))
-
-```
-
-
----
-
-## Geopackages
-
-```{r}
-gpkg <- here("gis", "project.gpkg")
-
-write_sf(us_states, dsn = gpkg, layer = "states")
-
-write_sf(ut_points, dsn = gpkg, layer = "ut_points")
-
-write_sf(world, dsn = gpkg, layer = "world")
-
-st_layers(gpkg)
-
-```
-
-
----
-
-## Geopackages
-
-```{r, eval = FALSE}
-us_states <- read_sf(gpkg, layer = "states")
-
-ut_points <- read_sf(gpkg, layer = "ut_points")
-
-world <- read_sf(gpkg, layer = "world")
-
-```
 
 

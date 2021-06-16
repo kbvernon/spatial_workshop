@@ -3,12 +3,17 @@
   <head>
     <title>Spatial Data in R</title>
     <meta charset="utf-8" />
-    <meta name="date" content="2021-06-15" />
+    <meta name="date" content="2021-06-16" />
     <script src="libs/header-attrs/header-attrs.js"></script>
     <link href="libs/animate.css/animate.xaringan.css" rel="stylesheet" />
     <link href="libs/tile-view/tile-view.css" rel="stylesheet" />
     <script src="libs/tile-view/tile-view.js"></script>
     <link href="libs/tachyons/tachyons.min.css" rel="stylesheet" />
+    <script src="libs/clipboard/clipboard.min.js"></script>
+    <link href="libs/xaringanExtra-clipboard/xaringanExtra-clipboard.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-clipboard/xaringanExtra-clipboard.js"></script>
+    <script>window.xaringanExtraClipboard(null, {"button":"Copy Code","success":"Copied!","error":"Press Ctrl+C to Copy"})</script>
+    <script src="libs/xaringanExtra-progressBar/progress-bar.js"></script>
     <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
     <link rel="stylesheet" href="custom_style.css" type="text/css" />
   </head>
@@ -17,7 +22,8 @@
 class: center, middle, inverse, title-slide
 
 # Spatial Data in R
-### 2021-06-15
+## A reckless romp through the basics
+### 2021-06-16
 
 ---
 
@@ -28,6 +34,7 @@ class: center, middle, inverse, title-slide
 
 
 
+&lt;!-- knitr options ---&gt;
 
 
 
@@ -39,86 +46,129 @@ class: center, middle, inverse, title-slide
 
 
 
-&lt;style type="text/css"&gt;
-.pull-lleft {
-  float: left;
-  width: 25%;
+
+
+&lt;!-- xaringanExtra options ---&gt;
+
+
+
+
+
+
+
+
+
+
+
+<style>.xe__progress-bar__container {
+  top:0;
+  opacity: 1;
+  position:absolute;
+  right:0;
+  left: 0;
 }
-.pull-lright {
-  float: right;
-  width: 74%;
+.xe__progress-bar {
+  height: 0.25em;
+  background-color: #CC0000;
+  width: calc(var(--slide-current) / var(--slide-total) * 100%);
 }
-.pull-lright ~ * {
-  clear: both;
+.remark-visible .xe__progress-bar {
+  animation: xe__progress-bar__wipe 200ms forwards;
+  animation-timing-function: cubic-bezier(.86,0,.07,1);
 }
+@keyframes xe__progress-bar__wipe {
+  0% { width: calc(var(--slide-previous) / var(--slide-total) * 100%); }
+  100% { width: calc(var(--slide-current) / var(--slide-total) * 100%); }
+}</style>
 
-.pull-rleft {
-  float: left;
-  width: 84%;
-}
-.pull-rright {
-  float: right;
-  width: 15%;
-}
-.pull-lright ~ * {
-  clear: both;
-}
-
-.pull-aleft {
-  float: left;
-  width: 45%;
-}
-.pull-aright {
-  float: right;
-  width: 54%;
-}
-.pull-aright ~ * {
-  clear: both;
-}
-
-&lt;/style&gt;
-
-&lt;!-- knit_hook: collapse and strip white 
-this is a Blake hack --&gt;
-
-
-
-&lt;!-- knit_hook: collapse and print error red
-super hacky, see here: https://stackoverflow.com/a/54985678/7705429
-we'll need to be careful to not string four # together anywhere
-
-
-&lt;script&gt;
-$(document).ready(function() {
-  window.setTimeout(function() {
-    $(".hljs-comment:contains('####')").css("color", "red");
-    var tmp = $(".hljs-comment:contains('####')").text();
-    $(".hljs-comment:contains('####')").text(tmp.replace("####", "##"));
-  }, 15);
-});
-&lt;/script&gt;
-
-
----&gt;
 
 ## Outline
 
+.pull-lleft[
+
+&lt;p style="margin-bottom:1.65em;"&gt;&lt;/p&gt;
+
+.bg-white.b--dark-gray.ba.bw1.br2.shadow-5.ph2.pv1.mh1.mt3.w-100[
+
 1. Setup
-2. Spatial Data Models
-2. Coordinate Reference Systems
-2. Simple Features (`sf`)
+
+2. Vectors
+    - Basic plotting
+    - Reading and writing
+    - Projecting
+    
 2. Rasters
-2. Projecting
-2. Reading and Writing
+    - Basic plotting
+    - Reading and writing
+    - Projecting
+
+]
+
+]
+
+.pull-lright[
+
+&lt;img src="lesson_one_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto 0 auto auto;" /&gt;
+
+]
 
 
 ---
 
 ## Setup
 
+.pull-left[
 
-* Create R project folder  
-* Add _data_, _gis_, and _R_ folders  
+&lt;img src="figures/new_project_window.png" width="90%" style="display: block; margin: auto;" /&gt;
+
+]
+
+.pull-right[
+
+Create an R project folder  
+
+- Go to _File_ &gt; _New Project..._ &gt; _New Directory_, 
+- Specify a suitable folder name (no spaces!),   
+- Choose an appropriate directory for the folder,  
+- Click _Create Project_.
+
+]
+
+
+
+
+
+
+---
+
+## Setup
+
+.pull-left[
+
+&lt;img src="figures/new_folder.png" width="80%" style="display: block; margin: auto;" /&gt;
+
+]
+  
+.pull-right[
+
+Add _data_, _gis_, and _R_ folders
+  
+- In the View pane, go to the _Files_ tab,
+- Click _New Folder_ and type the name of the folder, 
+- Click _OK_.
+
+]
+
+
+---
+
+## Setup
+
+* Download and open _lesson_one.Rmd_.
+  - In the Console, type 
+
+
+
 * Install packages  
 
 
@@ -143,9 +193,19 @@ library(sf)
 
 ## Where is here?
 
-The `here` package is your friend.
+.pull-left[
 
-.pull-aleft[
+&lt;img src="figures/allison_horst_here.png" width="100%" style="display: block; margin: auto;" /&gt;
+
+.center[Artwork by [Allison Horst](https://github.com/allisonhorst/stats-illustrations)]
+
+]
+
+.pull-right[
+
+&lt;br&gt;
+
+The [`here`](https://here.r-lib.org/) package is your friend. [Ask anyone](https://github.com/jennybc/here_here).
 
 
 ```r
@@ -153,48 +213,17 @@ file.path()
 ## character(0)
 
 here()
-## [1] "C:/Users/bob/stuff/spatial_workshop"
-```
+## [1] "C:/Users/bob/spatial_workshop"
 
-]
-
-.pull-aright[
-
-
-```r
 file.path("R", "script.R")
 ## [1] "R/script.R"
 
 here("R", "script.R")
-## [1] "C:/Users/bob/stuff/spatial_workshop/R/script.R"
+## [1] "C:/Users/bob/spatial_workshop/R/script.R"
 ```
 
 ]
 
---
-count: false
-
-.pull-aright[
-
-__Note!__ 
-
-.bg-washed-red.b--dark-gray.ba.bw1.br2.shadow-5.pa2.mt0[
-
-* Rmarkdown assumes files are in the same folder.  
-* R scripts assume files are in project root.
-
-]
-
-]
-
-
-
-
----
-
-## Spatial Data Models
-
-&lt;img src="lesson_one_files/figure-html/unnamed-chunk-5-1.png" width="700" style="display: block; margin: auto;" /&gt;
 
 
 ---
@@ -203,17 +232,9 @@ __Note!__
 
 _sf = data.frame_ (attributes + geometry) _+ crs + bbox_
 
+&lt;img src="figures/allison_horst_sf.png" width="55%" style="display: block; margin: auto;" /&gt;
 
-```r
-data("world", package = "spData")
-
-world &lt;- subset(world, select = c(name_long, 
-                                  continent,
-                                  area_km2, 
-                                  pop, 
-                                  gdpPercap))
-```
-
+.center[Artwork by [Allison Horst](https://github.com/allisonhorst/stats-illustrations)]
 
 ---
 count: false
@@ -224,10 +245,11 @@ _sf = data.frame_ (.rred[attributes] + geometry) _+ crs + bbox_
 
 
 ```r
-plot(world[, c("area_km2", "gdpPercap")])
+plot(world["area_km2"])
 ```
 
-&lt;img src="lesson_one_files/figure-html/unnamed-chunk-8-1.png" width="1100" style="display: block; margin: auto;" /&gt;
+
+&lt;img src="lesson_one_files/figure-html/unnamed-chunk-10-1.png" width="75%" style="display: block; margin: auto;" /&gt;
 
 
 ---
@@ -242,7 +264,7 @@ _sf = data.frame_ (attributes + .rred[geometry]) _+ crs + bbox_
 plot(st_geometry(world))
 ```
 
-&lt;img src="lesson_one_files/figure-html/unnamed-chunk-10-1.png" width="900" style="display: block; margin: auto;" /&gt;
+&lt;img src="lesson_one_files/figure-html/unnamed-chunk-11-1.png" width="75%" style="display: block; margin: auto;" /&gt;
 
 
 
@@ -268,6 +290,9 @@ plot(st_geometry(world))
 
 ```r
 world
+```
+
+```
 ## Simple feature collection with 177 features and 5 fields
 ## Geometry type: MULTIPOLYGON
 ## Dimension:     XY
@@ -294,6 +319,9 @@ Each row is a _feature_.
 
 ```r
 world$geom
+```
+
+```
 ## Geometry set for 177 features 
 ## Geometry type: MULTIPOLYGON
 ## Dimension:     XY
@@ -317,7 +345,10 @@ The geometry column is a _list_.
 
 ```r
 world$geom[[1]]
-## MULTIPOLYGON (((180 -16.06713, 180 -16.55522, 179.3641 -16.80135, 178.7251 -17.01204, 178.5968 -16.63915, 179.0966 -16.43398, 179.4135 -16.37905, 180 -16.06713)), ((178.1256 -17.50481, 178.3736 -17.33992, 178.7181 -17.62846, 178.5527 -18.15059, 177.9327 -18.28799, 177.3815 -18.16432, 177.285 -17.72465, 177.6709 -17.38114, 178.1256 -17.50481)), ((-179.7933 -16.02088, -179.9174 -16.50178, -180 -16.55522, -180 -16.06713, -179.7933 -16.02088)))
+```
+
+```
+## MULTIPOLYGON (((180 -16.06713, 180 -16.55522, 1...
 ```
 
 A single feature's geometry has a Well-Known Text representation of its vertices.
@@ -337,6 +368,9 @@ sf_column &lt;- st_sfc(point1, point2, crs = 26912)
 st_sf(id = 1:2, 
       location = "red butte canyon",
       geometry = sf_column)
+```
+
+```
 ## Simple feature collection with 2 features and 2 fields
 ## Geometry type: POINT
 ## Dimension:     XY
@@ -349,656 +383,7 @@ st_sf(id = 1:2,
 
 Similar to `data.frame(col1 = ..., col2 = ...)`, but with a geometry column.
 
----
 
-## Geometry types
-
-&lt;img src="https://geocompr.robinlovelace.net/figures/sf-classes.png" width="50%" style="display: block; margin: auto;" /&gt;
-
-
----
-
-## Geometry types
-
-
-```r
-small_world &lt;- world[1:5, ]
-
-st_geometry_type(small_world)
-## [1] MULTIPOLYGON MULTIPOLYGON MULTIPOLYGON MULTIPOLYGON MULTIPOLYGON
-## 18 Levels: GEOMETRY POINT LINESTRING POLYGON MULTIPOINT ... TRIANGLE
-```
-
---
-
-## Constructors
-
-.pull-left[
-
-Using `c()` and `matrix()`
-
-* `st_point()`
-* `st_multipoint()`
-* `st_linestring()`
-
-]
-
-.pull-right[
-
-Using `list()`
-
-* `st_polygon()`
-* `st_multilinestring()`
-* `st_multipolygon()`
-* `st_geometrycollection()`
-
-]
-
-
----
-
-## Bounding Box
-
-
-```r
-st_bbox(world)
-##       xmin       ymin       xmax       ymax 
-## -180.00000  -90.00000  180.00000   83.64513
-```
-
-
-
-
-
-
----
-
-## Raster
-
-Simple formula: `\(raster = matrix + crs + bbox\)`
-
-
-```r
-fn &lt;- system.file("raster/srtm.tif", package = "spDataLarge")
-
-(new_raster &lt;- raster(fn))
-## class      : RasterLayer 
-## dimensions : 457, 465, 212505  (nrow, ncol, ncell)
-## resolution : 0.0008333333, 0.0008333333  (x, y)
-## extent     : -113.2396, -112.8521, 37.13208, 37.51292  (xmin, xmax, ymin, ymax)
-## crs        : +proj=longlat +datum=WGS84 +no_defs 
-## source     : srtm.tif 
-## names      : srtm 
-## values     : 1024, 2892  (min, max)
-```
-
-
----
-
-## Raster
-
-Simple formula: `\(raster = matrix + crs + bbox\)`
-
-
-```r
-plot(new_raster)
-```
-
-&lt;img src="lesson_one_files/figure-html/unnamed-chunk-20-1.png" width="450" style="display: block; margin: auto;" /&gt;
-
-
----
-
-## Bounding Box
-
-
-```r
-extent(new_raster)
-## class      : Extent 
-## xmin       : -113.2396 
-## xmax       : -112.8521 
-## ymin       : 37.13208 
-## ymax       : 37.51292
-```
-
-
----
-
-## Raster brick
-
-Multispectral data, loaded from a single file with multiple layers.
-
-
-```r
-fn &lt;- system.file("raster/landsat.tif", 
-                  package = "spDataLarge")
-
-(r_brick = brick(fn))
-## class      : RasterBrick 
-## dimensions : 1428, 1128, 1610784, 4  (nrow, ncol, ncell, nlayers)
-## resolution : 30, 30  (x, y)
-## extent     : 301905, 335745, 4111245, 4154085  (xmin, xmax, ymin, ymax)
-## crs        : +proj=utm +zone=12 +datum=WGS84 +units=m +no_defs 
-## source     : landsat.tif 
-## names      : landsat.1, landsat.2, landsat.3, landsat.4 
-## min values :      7550,      6404,      5678,      5252 
-## max values :     19071,     22051,     25780,     31961
-```
-
-
----
-
-## Raster stack
-
-Different variables in a "list", loaded from multiple files with single layers.
-
-
-```r
-(r_stack &lt;- stack(new_raster, new_raster))
-## class      : RasterStack 
-## dimensions : 457, 465, 212505, 2  (nrow, ncol, ncell, nlayers)
-## resolution : 0.0008333333, 0.0008333333  (x, y)
-## extent     : -113.2396, -112.8521, 37.13208, 37.51292  (xmin, xmax, ymin, ymax)
-## crs        : +proj=longlat +datum=WGS84 +no_defs 
-## names      : srtm.1, srtm.2 
-## min values :   1024,   1024 
-## max values :   2892,   2892
-```
-
-
-
----
-
-## Coordinate Reference System
-
-.pull-left[
-
-Geographic CRS  
-
-* Latitude and Longitude  
-* Spherical  
-* Equatorial and Polar radii  
-
-]
-
-.pull-right[
-
-Projected CRS  
-
-* Easting and Northing (x and y)  
-* Origin
-* Conic, cylindrical, and planar  
-
-]
-
-
----
-
-## CRS in R
-
-.pull-left[
-
-`sf` uses WKT
-
-
-```r
-st_crs(world)
-## Coordinate Reference System:
-##   User input: EPSG:4326 
-##   wkt:
-## GEOGCS["WGS 84",
-##     DATUM["WGS_1984",
-##         SPHEROID["WGS 84",6378137,298.257223563,
-##             AUTHORITY["EPSG","7030"]],
-##         AUTHORITY["EPSG","6326"]],
-##     PRIMEM["Greenwich",0,
-##         AUTHORITY["EPSG","8901"]],
-##     UNIT["degree",0.0174532925199433,
-##         AUTHORITY["EPSG","9122"]],
-##     AUTHORITY["EPSG","4326"]]
-```
-
-]
-
-.pull-right[
-
-`raster` uses proj4string
-
-
-```r
-projection(new_raster)
-## [1] "+proj=longlat +datum=WGS84 +no_defs"
-crs(new_raster)
-## CRS arguments: +proj=longlat +datum=WGS84 +no_defs
-```
-
-]
-
-
----
-
-## Units
-
-This is actually a fairly novel aspect of `sf` and the whole R ecosystem.
-
-
-```r
-luxembourg &lt;- subset(world, name_long == "Luxembourg")
-
-st_area(luxembourg)
-## 2408817306 [m^2]
-units::set_units(st_area(luxembourg), km^2)
-## 2408.817 [km^2]
-```
-
-&lt;br&gt;
-
---
-count: false
-
-__Note!__ Raster does not have a concept of units, and instead relies exclusively on the CRS.
-
-
----
-
-## Projecting spatial data
-
-When to reproject?
-
-
-```r
-london_geo &lt;- st_as_sf(data.frame(lon = -0.1, lat = 51.5),
-                       coords = c("lon", "lat"),
-                       crs = 4326)
-
-london_proj &lt;- st_as_sf(data.frame(x = 530000, y = 180000),
-                        coords = c("x", "y"),
-                        crs = 27700)
-
-st_distance(london_geo, london_proj)
-## Error in st_distance(london_geo, london_proj): st_crs(x) == st_crs(y) is not TRUE
-```
-
-
----
-
-## Projecting vectors
-
-
-
-```r
-st_crs(london_geo)$epsg
-## [1] 4326
-london_ogsb &lt;- st_transform(london_geo, crs = 27700)
-
-st_crs(london_ogsb)$epsg
-## [1] 27700
-```
-
-
-
----
-
-## Projecting vectors
-
-
-
-
-```r
-utm12 &lt;- st_crs(26912)
-
-utm12$proj4string
-## [1] "+proj=utm +zone=12 +datum=NAD83 +units=m +no_defs"
-lambert &lt;- st_crs("+proj=laea +lat_0=37.32 +lon_0=-113.04")
-
-lambert$proj4string
-## [1] "+proj=laea +lat_0=37.32 +lon_0=-113.04 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"
-```
-
-
----
-
-## Projecting rasters
-
-.pull-left[
-
-
-```r
-fn &lt;- system.file("raster/nlcd2011.tif", 
-                  package = "spDataLarge")
-
-cat_raster &lt;- raster(fn) 
-
-plot(cat_raster)
-```
-
-&lt;img src="lesson_one_files/figure-html/cat-rast-plot-2.png" width="672" height="90%" style="display: block; margin: auto;" /&gt;
-
-
-]
-
-.pull-right[
-
-
-```r
-fn &lt;- system.file("raster/srtm.tif", 
-                  package = "spDataLarge")
-
-con_raster = raster(fn)
-
-plot(con_raster)
-```
-
-&lt;img src="lesson_one_files/figure-html/unnamed-chunk-32-1.png" width="450" style="display: block; margin: auto;" /&gt;
-
-
-]
-
-
----
-
-## Projecting rasters
-
-For a raster with _categorical_ data, use the nearest neighbor method.
-
-
-```r
-projectRaster(cat_raster,
-              crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
-              method = "ngb")
-## class      : RasterLayer 
-## dimensions : 1394, 1111, 1548734  (nrow, ncol, ncell)
-## resolution : 0.000356, 0.000284  (x, y)
-## extent     : -113.2432, -112.8477, 37.12494, 37.52083  (xmin, xmax, ymin, ymax)
-## crs        : +proj=longlat +datum=WGS84 +no_defs 
-## source     : memory
-## names      : nlcd2011 
-## values     : 11, 95  (min, max)
-```
-
-
----
-
-## Projecting rasters 
-
-For a raster with _continuous_ data, use the bilinear method.
-
-
-```r
-projectRaster(con_raster,
-              crs = "+proj=laea +lat_0=37.32 +lon_0=-113.04",
-              method = "bilinear")
-## class      : RasterLayer 
-## dimensions : 467, 478, 223226  (nrow, ncol, ncell)
-## resolution : 73.9, 92.5  (x, y)
-## extent     : -18177.8, 17146.4, -21305.52, 21891.98  (xmin, xmax, ymin, ymax)
-## crs        : +proj=laea +lat_0=37.32 +lon_0=-113.04 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs 
-## source     : memory
-## names      : srtm 
-## values     : 1027.369, 2891.357  (min, max)
-```
-
-
----
-
-## Read/Write rasters
-
-
-```r
-writeRaster(con_raster,
-            filename = here("gis", "srtm.tif"),
-            foramt = "GTiff")
-
-writeRaster(cat_raster,
-            filename = here("gis", "nlcd2011.tif"),
-            format = "GTiff")
-```
-
-
-```r
-con_raster &lt;- raster(here("gis", "srtm.tif"))
-
-cat_raster &lt;- raster(here("gis", "nlcd2011.tif"))
-```
-
-
-
----
-
-## Writing vectors
-
-
-```r
-data("us_states", package = "spData")
-
-plot(st_geometry(us_states))
-```
-
-&lt;img src="lesson_one_files/figure-html/unnamed-chunk-37-1.png" width="900" style="display: block; margin: auto;" /&gt;
-
----
-
-## Writing vectors
-
-
-```r
-st_write(us_states, dsn = here("gis", "us_states.shp"))
-## Writing layer `us_states' to data source 
-##   `C:/Users/u0694980/Box/spatial_workshop/gis/us_states.shp' using driver `ESRI Shapefile'
-## Writing 49 features with 6 fields and geometry type Multi Polygon.
-```
-
-__dsn__ is short for __d__ata __s__ource __n__ame, can be a file, a folder, a local database, or a connection to a remote database.  
-
-
----
-
-## Writing vectors
-
-
-```r
-ut &lt;- subset(us_states, NAME == "Utah")
-
-ut_points_col &lt;- st_sample(ut, size = 100)
-
-ut_points &lt;- st_sf(geometry = ut_points_col)
-
-plot(st_geometry(ut), col = "transparent")
-plot(st_geometry(ut_points), pch = 19, add = TRUE)
-```
-
-&lt;img src="lesson_one_files/figure-html/unnamed-chunk-39-1.png" width="504" style="display: block; margin: auto;" /&gt;
-
-
----
-
-## Writing vectors
-
-.pull-left[
-
-If you want to save to a csv file...
-
-
-```r
-st_write(ut_points, 
-         dsn = here("data", "ut_points.csv"),
-         layer_options = "GEOMETRY=AS_XY",
-         append = FALSE)
-## Writing layer `ut_points' to data source 
-##   `C:/Users/u0694980/Box/spatial_workshop/data/ut_points.csv' using driver `CSV'
-## options:        GEOMETRY=AS_XY 
-## Writing 100 features with 0 fields and geometry type Point.
-```
-
-]
-
-.pull-right[
-
-This is equivalent to:
-
-
-```r
-ut_points_matrix &lt;- st_coordinates(ut_points)
-
-ut_points &lt;- as.data.frame(ut_points_matrix)
-
-write.csv(ut_points, 
-          file = here("data", "ut_points.csv"), 
-          row.names = FALSE)
-```
-
-]
-
-
----
-
-## Writing vectors
-
-If a file or layer already exists, use `append = FALSE`.
-
-
-```r
-st_write(us_states, 
-         dsn = here("gis", "us_states.shp"),
-         append = FALSE)
-```
-
----
-
-## Writing vectors
-
-To suppress messages sf prints when reading or writing data, use `quiet = TRUE`.
-
-
-```r
-st_write(us_states, 
-         dsn = here("gis", "us_states.shp"),
-         quiet = TRUE)
-```
-
-
-
----
-
-## Writing vectors
-
-
-```r
-write_sf(us_states, 
-         dsn = here("gis", "us_states.shp"))
-```
-
-This is equivalent to
-
-
-```r
-st_write(us_states, 
-         dsn = here("gis", "us_states.shp"),
-         append = FALSE,
-         quiet = TRUE)
-```
-
-
-
-
----
-
-## Reading vectors
-
-
-```r
-us_states &lt;- st_read(here("gis", "us_states.shp"))
-## Reading layer `us_states' from data source 
-##   `C:\Users\u0694980\Box\spatial_workshop\gis\us_states.shp' 
-##   using driver `ESRI Shapefile'
-## Simple feature collection with 49 features and 6 fields
-## Geometry type: MULTIPOLYGON
-## Dimension:     XY
-## Bounding box:  xmin: -124.7042 ymin: 24.55868 xmax: -66.9824 ymax: 49.38436
-## Geodetic CRS:  NAD83
-```
-
-
-
----
-
-## Reading vectors
-
-
-```r
-us_states &lt;- st_read(here("gis", "us_states.shp"), quiet = TRUE)
-```
-
-Can also write
-
-
-```r
-us_states &lt;- read_sf(here("gis", "us_states.shp"))
-```
-
-
----
-
-## Data.frame to sf
-
-
-```r
-ut_points &lt;- read.csv(here("data", "ut_points.csv"))
-
-(ut_points &lt;- st_as_sf(ut_points,
-                       coords = c("X", "Y"),
-                       crs = 26912))
-## Simple feature collection with 100 features and 0 fields
-## Geometry type: POINT
-## Dimension:     XY
-## Bounding box:  xmin: -114.0468 ymin: 37.02157 xmax: -109.0848 ymax: 41.85312
-## Projected CRS: NAD83 / UTM zone 12N
-## First 5 features:
-##                     geometry
-## 1 POINT (-110.8199 39.74661)
-## 2 POINT (-111.7914 40.16973)
-## 3  POINT (-111.0493 37.7516)
-## 4 POINT (-112.3867 40.71988)
-## 5 POINT (-112.0487 38.79479)
-```
-
-
----
-
-## Geopackages
-
-
-```r
-gpkg &lt;- here("gis", "project.gpkg")
-
-write_sf(us_states, dsn = gpkg, layer = "states")
-
-write_sf(ut_points, dsn = gpkg, layer = "ut_points")
-
-write_sf(world, dsn = gpkg, layer = "world")
-
-st_layers(gpkg)
-## Driver: GPKG 
-## Available layers:
-##   layer_name geometry_type features fields
-## 1     states Multi Polygon       49      6
-## 2  ut_points         Point      100      0
-## 3      world Multi Polygon      177      5
-```
-
-
----
-
-## Geopackages
-
-
-```r
-us_states &lt;- read_sf(gpkg, layer = "states")
-
-ut_points &lt;- read_sf(gpkg, layer = "ut_points")
-
-world &lt;- read_sf(gpkg, layer = "world")
-```
 
 
     </textarea>
@@ -1007,7 +392,6 @@ world &lt;- read_sf(gpkg, layer = "world")
 <script>var slideshow = remark.create({
 "highlightStyle": "magula",
 "highlightLines": true,
-"countIncrementalSlides": true,
 "ratio": "16:9"
 });
 if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {

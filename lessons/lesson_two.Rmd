@@ -19,29 +19,144 @@ output:
 
 ## Outline
 
-1. Setup
-2. Rasters
-    * Attribute operations
-    * Spatial operations
-2. Vectors
-    * Attribute operations
-    * Spatial operations
+.pull-lleft[
 
+<p style="margin-bottom:1.65em;"></p>
+
+.bg-white.b--dark-gray.ba.bw1.br2.shadow-5.ph2.pv1.mh1.mt3.w-100[
+
+1. Setup
+
+2. Rasters
+  * Attribute operations
+  * Spatial operations
+    
+2. Vectors
+  * Attribute operations
+  * Spatial operations
+
+]
+
+]
+
+.pull-lright[
+
+```{r, echo = FALSE, fig.width = 800/72, fig.asp = 0.8, out.width = "90%", fig.align = "right"}
+
+par(pty = "s",
+    mfrow = c(1, 2),
+    mar = c(2,2,2,0),
+    oma = rep(1, 4))
+
+plot(0,
+     type = "n",
+     xlim = c(0, 10),
+     ylim = c(0, 10),
+     xlab = "",
+     ylab = "",
+     xaxs = "i",
+     yaxs = "i",
+     xaxt = "n",
+     yaxt = "n")
+
+title(main = "Vector", 
+      adj = 0, 
+      line = 0.3,
+      cex.main = 2)
+
+xy <- par("usr")
+
+rect(xleft = xy[1],
+     xright = xy[2],
+     ybottom = xy[3],
+     ytop = xy[4],
+     col = adjustcolor("#d4fcf5", alpha.f = 0.3))
+
+box()
+
+rect(xleft = 5,
+     xright = 9,
+     ybottom = 2,
+     ytop = 6,
+     col = adjustcolor("#de8500", alpha.f = 0.9),
+     border = "#693f00",
+     lwd = 3)
+
+set.seed(12345)
+
+n <- 20
+
+x <- pmin(9.7, pmax(0.3, rnorm(n, mean = 3, sd = 1.5)))
+y <- pmin(9.7, pmax(0.3, rnorm(n, mean = 6, sd = 1.5)))
+
+points(x = x,
+       y = y,
+       bg = adjustcolor("#edc600", alpha.f = 0.6),
+       col = "#967e02",
+       pch = 21,
+       lwd = 2,
+       cex = 4)
+
+lines(x = c(0.3, 0.3, 2.0, 2.5, 8.5, 9.8, 9.8),
+      y = c(7.0, 0.3, 2.5, 1.5, 6.5, 9.8, 0.3),
+      col = adjustcolor("#fffb00", alpha.f = 0.5),
+      lwd = 10)
+
+lines(x = c(0.3, 0.3, 2.0, 2.5, 8.5, 9.8, 9.8),
+      y = c(7.0, 0.3, 2.5, 1.5, 6.5, 9.8, 0.3),
+      col = "#d44402",
+      lwd = 5)
+
+
+
+m <- matrix(runif(100, min = 0, max = 100),
+            nrow = 10,
+            ncol = 10)
+
+image(x = seq(0.5, 9.5, by = 1),
+      y = seq(0.5, 9.5, by = 1),
+      z = m,
+      col = terrain.colors(100),
+      xlim = c(0, 10),
+      ylim = c(0, 10),
+      xlab = "",
+      ylab = "",
+      xaxt = "n",
+      yaxt = "n")
+
+title(main = "Raster", 
+      adj = 0, 
+      line = 0.3,
+      cex.main = 2)
+
+grid(nx = 10,
+     ny = 10,
+     lty = 1,
+     col = "gray50")
+
+box()
+
+```
+
+]
 
 ---
 
 ## Setup
 
 ```{r, eval = FALSE}
+
 install.packagess(c("dplyr", "tidyr"))
 
 ```
 
 ```{r}
+
 library(here)
 library(raster)
 library(sf)
 library(spData)
+library(spDataLarge)
 library(tidyr)
 library(dplyr)
 
@@ -53,16 +168,14 @@ select <- dplyr::select
 
 ```
 
-
-
 --
 count: false
 
 __Note!__ 
 
-.bg-washed-red.b--dark-gray.ba.bw1.br2.shadow-5.pa2.mt0[
+.bg-white.b--dark-gray.ba.bw1.br2.shadow-5.pa2.mt0[
 
-`dplyr` and `raster` both contain a `select()` function, but the package called last will gain priority, in this case, `dplyr`, which is fortunate, because I have never used `raster::select()`.
+`dplyr` and `raster` both contain a `select()` function. This may lead to namespace collisions.
 
 ]
 
@@ -71,189 +184,87 @@ __Note!__
 
 ## Rasters
 
-```{r}
-og <- c("xmn" = 432000, "ymn" = 4513100)
+.pull-left[
 
-(dem <- raster(vals = runif(100, min = 0, max = 100),
-               ncols = 10, 
-               nrows = 10, 
-               res  = c(30, 30),
-               xmn = og["xmn"],
-               xmx = og["xmn"] + (30 * 10),
-               ymn = og["ymn"],
-               ymx = og["ymn"] + (30 * 10),
-               crs = "+proj=utm +zone=12 +datum=NAD83 +units=m +no_defs"))
+```{r plot-elevation, fig.show = "hide"}
+
+fn <- system.file("raster/srtm.tif", 
+                  package = "spDataLarge")
+
+elevation <- raster(fn)
+
+plot(elevation)
 
 ```
+
+]
+
+.pull-right[
+
+```{r ref.label = "plot-elevation", echo = FALSE, fig.width = 500/72, fig.asp = 0.9}
+```
+
+]
 
 
 ---
 
-## Rasters
+## Subsetting
 
-```{r}
-grain_char <- sample(c("clay", "silt", "sand"), 100, replace = TRUE)
-grain_fact <- factor(grain_char, levels = c("clay", "silt", "sand"))
+.pull-left[
 
-(grain <- raster(vals = grain_fact,
-                 res = res(dem), 
-                 ext = extent(dem),
-                 crs = "+proj=utm +zone=12 +datum=NAD83 +units=m +no_defs"))
-
-```
-
-
-
----
-
-## Naming
-
-```{r, fig.width = 900/72, fig.asp = 0.4}
-r_stack <- stack(dem, grain)
-
-names(r_stack) <- c("elevation", "grain")
-
-plot(r_stack)
-
-```
-
-
----
-
-## Index subsetting
+By row and column
 
 ```{r}
-dem[4, 7]
 
-grain[8, 3]
-
-levels(grain)
+# with [1, 1] being top-left
+elevation[2, 3]
 
 ```
 
-
----
-
-## Index subsetting
+By cell number
 
 ```{r}
-dem[4, 7] <- 99.9
 
-grain[8, 3] <- factor("sand", levels = c("clay", "silt", "sand"))
+elevation[468]
 
 ```
 
+]
 
----
+.pull-right[
 
-## Cell subsetting
+By coordinates
 
 ```{r}
-dem[58:60]
 
-grain[98:100]
+x <- xmin(elevation) + c(0.1, 0.2, 0.3)
+y <- ymin(elevation) + c(0.1, 0.2, 0.3)
+
+# extract
+raster::extract(elevation, cbind(x, y))
 
 ```
 
+]
 
 
 ---
 
-## Logical subsetting
+## Smoothing
 
-```{r}
-i <- which(values(dem) > 90)
+```{r, eval = FALSE}
 
-dem[i]
-
-lookup <- levels(grain)[[1]]
-ID <- lookup[lookup$VALUE == "sand", "ID", drop = TRUE]
-
-i <- which(values(grain) == ID)
-
-grain[i]
+# use NAonly = TRUE to smooth only empty pixels
+focal(elevation, w = matrix(1, nrow = 3, ncol = 3), fun = min)
 
 ```
 
+```{r, echo = FALSE, out.width = "70%"}
 
-
----
-
-## Layer subsetting
-
-```{r}
-raster::subset(r_stack, "elevation")
-
-# r_stack[["elevation"]] #like a list
-
-# r_stack$elevation
+knitr::include_graphics("https://geocompr.robinlovelace.net/figures/04_focal_example.png")
 
 ```
-
-
----
-
-## Summarizing
-
-```{r}
-cellStats(dem, mean)
-
-cellStats(dem, sd)
-
-hist(dem, main = "", xlab = "elevation")
-
-```
-
-
----
-
-## Spatial subsetting
-
-```{r}
-(xy <- cbind("x" = runif(3, min = xmin(dem), max = xmax(dem)),
-             "y" = runif(3, min = ymin(dem), max = ymax(dem))))
-
-i <- cellFromXY(dem, xy)
-
-raster::extract(dem, xy)
-
-```
-
-
-
----
-
-## Raster subsetting
-
-```{r}
-# top right corner
-ri <- raster(xmn = xmax(dem) - 100,
-             xmx = xmax(dem),
-             ymn = ymax(dem) - 100,
-             ymx = ymax(dem),
-             res = c(30, 30),
-             crs = crs(dem))
-
-dem[ri]
-
-```
-
-
----
-
-## Mask
-
-```{r, fig.width = 900/72, fig.asp = 0.4}
-rmask <- dem
-
-values(rmask) <- sample(c(NA, TRUE), size = ncell(dem), replace = TRUE)
-
-new_dem <- mask(dem, rmask)
-
-plot(stack(dem, new_dem), main = "")
-
-```
-
 
 
 
@@ -262,6 +273,7 @@ plot(stack(dem, new_dem), main = "")
 ## Vectors
 
 ```{r}
+
 gpkg <- here("gis", "project.gpkg")
 
 st_layers(gpkg)
@@ -270,99 +282,67 @@ world <- read_sf(gpkg, layer = "world")
 
 states <- read_sf(gpkg, layer = "states")
 
-data("coffee_data", package = "spData")
+```
 
-names(coffee_data)
 
-data("us_states_df", package = "spData")
 
-names(us_states_df)
+---
+class: bg_pipe
+
+## Piping
+
+<br><br><br><br><br><br>
+
+.bg-white-60.br3.pa2.center[
+Some basic rules:
+
+`x %>% f` is equivalent to `f(x)`  
+`x %>% f(y)` is equivalent to `f(x, y)`  
+`x %>% f %>% g` is equivalent to `g(f(x))` &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+]
+
+
+---
+
+## `select()` columns
+
+```{r}
+
+world %>% select(name_long)
+
+```
+
+---
+
+## `filter()` rows
+
+```{r}
+
+world %>% filter(area_km2 < 10000)
 
 ```
 
 
 ---
 
-## Index subsetting
+## `mutate()` variables
 
 ```{r}
-world[1:3, "name_long"]
 
-```
-
-
----
-
-## Logical subsetting
-
-```{r}
-i <- world$area_km2 < 10000
-
-(small_countries <- world[i, ])
-
-```
-
-
-
----
-
-## Logical subsetting
-
-```{r}
-subset(world, area_km2 < 10000)
-
-```
-
-
----
-
-## Selecting variables
-
-```{r}
-# world[, "name_long"]
-
-subset(world, select = "name_long")
-
-```
-
-
----
-
-## Le pipe
-
-Just like algebraic pipes: `f(g(h(x)))` in pipe form is `x %>% h() %>% g() %>% f()`
-
-```{r}
-# log(sum(exp(c(1, 3, 4, 5))))
-
-c(1, 3, 4, 5) %>% exp()
-
-c(1, 3, 4, 5) %>% exp() %>% sum()
-
-c(1, 3, 4, 5) %>% exp() %>% sum() %>% log()
-
-```
-
-
----
-
-## dplyr
-
-```{r}
 world %>% 
-  filter(area_km2 < 10000) %>% 
-  select(name_long, area_km2)
+  mutate(pop_dens = (pop / area_km2),
+         gdp_dens = (gdpPercap / area_km2)) %>% 
+  select(name_long, pop_dens, gdp_dens)
 
 ```
-
-`filter()` rows and `select()` columns.
 
 
 ---
 
-## Rename
+## `rename()` variables
 
 ```{r}
+
 world %>% 
   rename("area" = area_km2) %>% 
   names()
@@ -373,12 +353,15 @@ world %>%
 
 ---
 
-## Aggregate
+## `summarize()` groups
 
 .pull-left[
 
 ```{r}
+
 states %>% 
+  # do something here
+  # do another thing
   st_geometry() %>% 
   plot()
 
@@ -389,6 +372,7 @@ states %>%
 .pull-right[
 
 ```{r}
+
 states %>% 
   group_by(REGION) %>% 
   summarize(mean_area = mean(AREA)) %>% 
@@ -402,9 +386,10 @@ states %>%
 
 ---
 
-## Aggregate
+## `summarize()` groups
 
 ```{r}
+
 states %>% 
   select(NAME, REGION, AREA, ttl__15) %>% 
   group_by(REGION) %>% 
@@ -417,87 +402,187 @@ states %>%
 
 ---
 
-## Join
+## `*_join()` tables
 
 ```{r}
-world_coffee <- left_join(world, coffee_data, by = "name_long")
 
-world_coffee %>% 
-  select(name_long, coffee_production_2017) %>% 
-  filter(!is.na(coffee_production_2017))
+world_coffee <- world %>% left_join(coffee_data)
+
+select(world_coffee, name_long, coffee_production_2017)
 
 ```
 
 
 ---
 
-## Join
+## `*_join()` tables
 
-```{r, fig.asp = 0.5, fig.width = 900/72}
+```{r, eval = FALSE}
+
 plot(world_coffee["coffee_production_2017"])
 
 ```
 
+```{r, echo = FALSE, fig.asp = 0.4, fig.width = 900/72, out.width = "75%"}
+
+plot(world_coffee["coffee_production_2017"], key.pos = NULL, main = NULL)
+
+```
+
 
 ---
 
-## Join
+## `st_filter()` geometries
+
+.pull-left[
 
 ```{r}
 
-states <- 
-  states %>% 
-  rename("state" = NAME) %>% 
-  left_join(us_states_df, by = "state")
-
-names(states)
+# sample
+rand_ohs <- states %>% 
+  st_sample(size = 100) %>% 
+  st_sf()
 
 ```
 
+```{r, echo = FALSE}
 
----
+plot(st_geometry(states))
 
-## Join
-
-```{r, fig.asp = 0.5, fig.width = 900/72}
-plot(states["poverty_level_15"])
+plot(rand_ohs, 
+     pch = 19, 
+     col = "gray85", 
+     cex = 1.2, 
+     add = TRUE)
 
 ```
 
+]
 
----
+--
+count: false
 
-## Mutate
+.pull-right[
 
 ```{r}
-# world <- transform(world, pop_dens = (pop / area_km2))
 
-world <- mutate(world, 
-                pop_dens = (pop / area_km2),
-                gdp_dens = (gdpPercap / area_km2))
-
-world %>% select(name_long, pop_dens, gdp_dens)
+the_west <- states %>% filter(REGION == "West")
+# spatial filter
+westers <- rand_ohs %>% 
+  st_filter(the_west, .predicate = st_intersects)
 
 ```
+
+```{r, echo = FALSE}
+
+plot(st_geometry(states))
+
+plot(rand_ohs, 
+     pch = 19, 
+     col = "gray85", 
+     cex = 1.2, 
+     add = TRUE)
+
+plot(westers, 
+     pch = 21, 
+     bg = adjustcolor("red", alpha.f = 0.5), 
+     col = "red3", 
+     cex = 1.5, 
+     add = TRUE)
+
+```
+
+]
 
 
 ---
 
-## Mutate
+## `st_filter()` geometries
 
-```{r, fig.asp = 0.5, fig.width = 900/72}
-plot(world["pop_dens"])
+.pull-left[
+
+```{r}
+
+goats <- rand_ohs %>% 
+  st_filter(the_west, 
+            .predicate = st_is_within_distance, 
+            dist = 500000)
+
 ```
 
+```{r, echo = FALSE}
 
+plot(st_geometry(states))
 
+plot(rand_ohs, 
+     pch = 19, 
+     col = "gray85", 
+     cex = 1.2, 
+     add = TRUE)
+
+plot(goats, 
+     pch = 21, 
+     bg = adjustcolor("blue", alpha.f = 0.5), 
+     col = "navyblue", 
+     cex = 1.5, 
+     add = TRUE)
+
+```
+
+]
+
+--
+count: false
+
+.pull-right[
+
+```{r, echo = FALSE}
+
+st_not_intersects <- function(x, y, ...) {
+  
+  bob <- st_intersects(x, y, ...)
+  
+  tom <- vector("list", length(bob))
+  
+  tom[which(lengths(bob) == 0)] <- 1
+  
+  return(tom)
+  
+}
+
+```
+
+```{r}
+
+easters <- rand_ohs %>% 
+  # made-up function 
+  st_filter(the_west, 
+            .predicate = st_not_intersects)
+
+```
+
+```{r, echo = FALSE}
+
+plot(st_geometry(states))
+
+plot(rand_ohs, 
+     pch = 19, 
+     col = "gray85", 
+     cex = 1.2, 
+     add = TRUE)
+
+plot(easters, 
+     pch = 21, 
+     bg = adjustcolor("#fcba03", alpha.f = 0.5), 
+     col = "#876300", 
+     cex = 1.5, 
+     add = TRUE)
+
+```
+
+]
 
 ---
 
-## Spatial subsetting
-
-
-
-
-
+## `st_join()` geometries
 

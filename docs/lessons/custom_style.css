@@ -30,4 +30,73 @@
   background-color: white;
 }
 
+.pull-lleft {
+  float: left;
+  width: 29%;
+}
+.pull-lright {
+  float: right;
+  width: 70%;
+}
+.pull-lright ~ * {
+  clear: both;
+}
 
+.pull-rleft {
+  float: left;
+  width: 84%;
+}
+.pull-rright {
+  float: right;
+  width: 15%;
+}
+.pull-rright ~ * {
+  clear: both;
+}
+
+.pull-aleft {
+  float: left;
+  width: 45%;
+}
+.pull-aright {
+  float: right;
+  width: 54%;
+}
+.pull-aright ~ * {
+  clear: both;
+}
+
+.pull-bleft {
+  float: left;
+  width: 55%;
+}
+.pull-bright {
+  float: right;
+  width: 34%;
+}
+.pull-bright ~ * {
+  clear: both;
+}
+
+.rred { color: var(--text-bold-color); }
+
+
+/* https://stackoverflow.com/a/64276243 */
+
+.bg_pipe {
+  position: relative;
+  z-index: 1;
+}
+
+.bg_pipe::before {
+      content: "";
+      background-image: url('figures/magrittes_pipe.png');
+      background-size: cover;
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      bottom: 0px;
+      left: 0px;
+      opacity: 0.3;
+      z-index: -1;
+}
