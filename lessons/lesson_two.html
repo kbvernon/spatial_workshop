@@ -34,6 +34,7 @@ class: center, middle, inverse, title-slide
 
 
 
+
 &lt;!-- knitr options ---&gt;
 
 
@@ -116,11 +117,10 @@ class: center, middle, inverse, title-slide
 
 
 ```r
+# install packages
 install.packagess(c("dplyr", "tidyr"))
-```
 
-
-```r
+# attach packages
 library(here)
 library(raster)
 library(sf)
@@ -129,8 +129,6 @@ library(spDataLarge)
 library(tidyr)
 library(dplyr)
 ```
-
-
 
 --
 count: false
@@ -164,7 +162,7 @@ plot(elevation)
 
 .pull-right[
 
-&lt;img src="lesson_two_files/figure-html/unnamed-chunk-6-1.png" width="500" style="display: block; margin: auto;" /&gt;
+&lt;img src="lesson_two_files/figure-html/unnamed-chunk-4-1.png" width="500" style="display: block; margin: auto;" /&gt;
 
 ]
 
@@ -261,6 +259,9 @@ world &lt;- read_sf(gpkg, layer = "world")
 
 states &lt;- read_sf(gpkg, layer = "states")
 ```
+
+
+
 
 
 
@@ -379,6 +380,18 @@ world %&gt;%
 ```
 
 
+```r
+states %&gt;% 
+  rename_with(tolower) %&gt;% 
+  names()
+```
+
+```
+## [1] "geoid"   "name"    "region"  "area"    "ttl__10" "ttl__15" "geom"
+```
+
+
+
 
 ---
 
@@ -442,7 +455,7 @@ states %&gt;%
 
 ---
 
-## `*_join()` tables
+## `left_join()` tables
 
 
 ```r
@@ -471,7 +484,7 @@ select(world_coffee, name_long, coffee_production_2017)
 
 ---
 
-## `*_join()` tables
+## `left_join()` tables
 
 
 ```r
@@ -479,6 +492,47 @@ plot(world_coffee["coffee_production_2017"])
 ```
 
 &lt;img src="lesson_two_files/figure-html/unnamed-chunk-22-1.png" width="75%" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+## `left_join()` tables
+
+
+```r
+state_data &lt;- states %&gt;% left_join(us_states_df, by = c("NAME" = "state"))
+
+select(state_data, NAME, median_income_15)
+```
+
+```
+## Simple feature collection with 49 features and 2 fields
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: -124.7042 ymin: 24.55868 xmax: -66.9824 ymax: 49.38436
+## Geodetic CRS:  NAD83
+## # A tibble: 49 x 3
+##   NAME      median_income_15                                                geom
+##   &lt;chr&gt;                &lt;dbl&gt;                                  &lt;MULTIPOLYGON [°]&gt;
+## 1 Alabama              22890 (((-88.20006 34.99563, -88.20296 35.00803, -87.428~
+## 2 Arizona              26156 (((-114.7196 32.71876, -114.5391 32.75695, -114.46~
+## 3 Colorado             30752 (((-109.0501 41.00066, -108.2506 41.00011, -107.62~
+## 4 Connecti~            33226 (((-73.48731 42.04964, -72.99955 42.03865, -71.800~
+## 5 Florida              24654 (((-81.81169 24.56874, -81.74565 24.65988, -81.443~
+## # ... with 44 more rows
+```
+
+
+---
+
+## `left_join()` tables
+
+
+```r
+plot(state_data["median_income_15"])
+```
+
+&lt;img src="lesson_two_files/figure-html/unnamed-chunk-25-1.png" width="75%" style="display: block; margin: auto;" /&gt;
 
 
 ---
@@ -495,7 +549,7 @@ rand_ohs &lt;- states %&gt;%
   st_sf()
 ```
 
-&lt;img src="lesson_two_files/figure-html/unnamed-chunk-24-1.png" width="504" style="display: block; margin: auto;" /&gt;
+&lt;img src="lesson_two_files/figure-html/unnamed-chunk-27-1.png" width="504" style="display: block; margin: auto;" /&gt;
 
 ]
 
@@ -512,7 +566,7 @@ westers &lt;- rand_ohs %&gt;%
   st_filter(the_west, .predicate = st_intersects)
 ```
 
-&lt;img src="lesson_two_files/figure-html/unnamed-chunk-26-1.png" width="504" style="display: block; margin: auto;" /&gt;
+&lt;img src="lesson_two_files/figure-html/unnamed-chunk-29-1.png" width="504" style="display: block; margin: auto;" /&gt;
 
 ]
 
@@ -531,7 +585,7 @@ goats &lt;- rand_ohs %&gt;%
             dist = 500000)
 ```
 
-&lt;img src="lesson_two_files/figure-html/unnamed-chunk-28-1.png" width="504" style="display: block; margin: auto;" /&gt;
+&lt;img src="lesson_two_files/figure-html/unnamed-chunk-31-1.png" width="504" style="display: block; margin: auto;" /&gt;
 
 ]
 
@@ -550,13 +604,99 @@ easters &lt;- rand_ohs %&gt;%
             .predicate = st_not_intersects)
 ```
 
-&lt;img src="lesson_two_files/figure-html/unnamed-chunk-31-1.png" width="504" style="display: block; margin: auto;" /&gt;
+&lt;img src="lesson_two_files/figure-html/unnamed-chunk-34-1.png" width="504" style="display: block; margin: auto;" /&gt;
 
 ]
 
 ---
 
 ## `st_join()` geometries
+
+
+```r
+rand_ohs %&gt;% st_join(states["NAME"])
+```
+
+```
+## Simple feature collection with 100 features and 1 field
+## Geometry type: POINT
+## Dimension:     XY
+## Bounding box:  xmin: -123.8079 ymin: 27.7088 xmax: -69.15644 ymax: 48.80126
+## Geodetic CRS:  NAD83
+## First 5 features:
+##           NAME                   geometry
+## 1 South Dakota POINT (-101.0406 43.30978)
+## 2   New Mexico POINT (-104.6403 32.22843)
+## 3        Idaho POINT (-115.2732 45.62124)
+## 4   New Mexico POINT (-106.9972 36.71393)
+## 5      Wyoming  POINT (-106.748 43.24284)
+```
+
+
+---
+
+## `st_join()` geometries
+
+
+```r
+rand_ohs %&gt;% st_join(states,
+                     join = st_is_within_distance,
+                     dist = 1000000)
+```
+
+```
+## Simple feature collection with 1665 features and 6 fields
+## Geometry type: POINT
+## Dimension:     XY
+## Bounding box:  xmin: -123.8079 ymin: 27.7088 xmax: -69.15644 ymax: 48.80126
+## Geodetic CRS:  NAD83
+## First 5 features:
+##   GEOID      NAME  REGION     AREA ttl__10 ttl__15                   geometry
+## 1    04   Arizona    West 295281.3 6246816 6641928 POINT (-101.0406 43.30978)
+## 2    08  Colorado    West 269573.1 4887061 5278906 POINT (-101.0406 43.30978)
+## 3    16     Idaho    West 216512.7 1526797 1616547 POINT (-101.0406 43.30978)
+## 4    20    Kansas Midwest 213037.1 2809329 2892987 POINT (-101.0406 43.30978)
+## 5    27 Minnesota Midwest 218566.5 5241914 5419171 POINT (-101.0406 43.30978)
+```
+
+
+---
+
+## `st_join()` geometries
+
+
+```r
+rand_ohs %&gt;% 
+  st_join(states[, c("REGION", "ttl__15")]) %&gt;% 
+  group_by(REGION) %&gt;% 
+  summarize(pop = sum(ttl__15)) %&gt;% 
+  plot(pch = 19, cex = 2)
+```
+
+&lt;img src="lesson_two_files/figure-html/unnamed-chunk-37-1.png" width="75%" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+## `st_distance()` between sf
+
+
+```r
+rand_ohs %&gt;% 
+  sample_n(5) %&gt;% 
+  st_distance()
+```
+
+```
+## Units: [m]
+##           [,1]      [,2]      [,3]      [,4]      [,5]
+## [1,]       0.0 1416245.6  878930.8 1266978.2  429365.1
+## [2,] 1416245.6       0.0  687830.4  656644.9 1799992.6
+## [3,]  878930.8  687830.4       0.0  971413.1 1189592.1
+## [4,] 1266978.2  656644.9  971413.1       0.0 1696053.9
+## [5,]  429365.1 1799992.6 1189592.1 1696053.9       0.0
+```
 
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>

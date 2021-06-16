@@ -1,17 +1,22 @@
 
 ```{r, include = FALSE}
 library(dplyr)
-library(ggplot2)
-library(grid)
 library(here)
 library(knitr)
 library(kableExtra)
+library(mapview)
 library(patchwork)
 library(raster)
 library(sf)
+library(tmap)
 library(viridis)
 ```
 
+```{r, echo = FALSE}
+
+select <- dplyr::select
+
+```
 
 
 <!-- knitr options --->

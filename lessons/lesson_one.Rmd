@@ -216,7 +216,7 @@ install.packages("spDataLarge",
                  repos = "https://nowosad.github.io/drat/", 
                  type = "source")
 
-# open libraries
+# attach packages
 library(here)
 library(raster)
 library(spData)

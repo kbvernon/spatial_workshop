@@ -1,7 +1,7 @@
 
 ---
-title: "GIS Operations in R"
-subtitle: "Working with Spatial and Attribute Data"
+title: "Spatial Data in R"
+subtitle: "Spatial and Attribute Operations"
 date: '`r Sys.Date()`'
 output:
   xaringan::moon_reader:
@@ -146,12 +146,10 @@ box()
 
 ```{r, eval = FALSE}
 
+# install packages
 install.packagess(c("dplyr", "tidyr"))
 
-```
-
-```{r}
-
+# attach packages
 library(here)
 library(raster)
 library(sf)
@@ -159,12 +157,6 @@ library(spData)
 library(spDataLarge)
 library(tidyr)
 library(dplyr)
-
-```
-
-```{r, echo = FALSE}
-
-select <- dplyr::select
 
 ```
 
@@ -284,6 +276,17 @@ states <- read_sf(gpkg, layer = "states")
 
 ```
 
+```{r, echo = FALSE}
+
+data("coffee_data", package = "spData")
+data("us_states_df", package = "spData")
+
+coffee_data <- coffee_data
+us_states_df <- us_states_df
+
+```
+
+
 
 
 ---
@@ -349,6 +352,15 @@ world %>%
 
 ```
 
+```{r}
+
+states %>% 
+  rename_with(tolower) %>% 
+  names()
+
+```
+
+
 
 
 ---
@@ -402,7 +414,7 @@ states %>%
 
 ---
 
-## `*_join()` tables
+## `left_join()` tables
 
 ```{r}
 
@@ -415,7 +427,7 @@ select(world_coffee, name_long, coffee_production_2017)
 
 ---
 
-## `*_join()` tables
+## `left_join()` tables
 
 ```{r, eval = FALSE}
 
@@ -426,6 +438,36 @@ plot(world_coffee["coffee_production_2017"])
 ```{r, echo = FALSE, fig.asp = 0.4, fig.width = 900/72, out.width = "75%"}
 
 plot(world_coffee["coffee_production_2017"], key.pos = NULL, main = NULL)
+
+```
+
+
+---
+
+## `left_join()` tables
+
+```{r}
+
+state_data <- states %>% left_join(us_states_df, by = c("NAME" = "state"))
+
+select(state_data, NAME, median_income_15)
+
+```
+
+
+---
+
+## `left_join()` tables
+
+```{r, eval = FALSE}
+
+plot(state_data["median_income_15"])
+
+```
+
+```{r, echo = FALSE, fig.asp = 0.4, fig.width = 900/72, out.width = "75%"}
+
+plot(state_data["median_income_15"], key.pos = NULL, main = NULL)
 
 ```
 
@@ -585,4 +627,52 @@ plot(easters,
 ---
 
 ## `st_join()` geometries
+
+```{r}
+
+rand_ohs %>% st_join(states["NAME"])
+
+```
+
+
+---
+
+## `st_join()` geometries
+
+```{r}
+
+rand_ohs %>% st_join(states,
+                     join = st_is_within_distance,
+                     dist = 1000000)
+
+```
+
+
+---
+
+## `st_join()` geometries
+
+```{r, fig.asp = 0.4, fig.width = 900/72, out.width = "75%"}
+
+rand_ohs %>% 
+  st_join(states[, c("REGION", "ttl__15")]) %>% 
+  group_by(REGION) %>% 
+  summarize(pop = sum(ttl__15)) %>% 
+  plot(pch = 19, cex = 2)
+
+```
+
+
+
+---
+
+## `st_distance()` between sf
+
+```{r}
+
+rand_ohs %>% 
+  sample_n(5) %>% 
+  st_distance()
+
+```
 

@@ -1,7 +1,7 @@
 
 ---
 title: "Spatial Data in R"
-subtitle: "A blisteringly fast introduction"
+subtitle: "Geometric Operations"
 date: '`r Sys.Date()`'
 output:
   xaringan::moon_reader:
@@ -13,3 +13,543 @@ output:
       countIncrementalSlides: TRUE
       ratio: '16:9'
 ---
+
+```{r, echo = FALSE, child = here::here("lessons/before_chunk.Rmd")}
+```
+
+## Outline
+
+.pull-lleft[
+
+<p style="margin-bottom:1.65em;"></p>
+
+.bg-white.b--dark-gray.ba.bw1.br2.shadow-5.ph2.pv1.mh1.mt3.w-100[
+
+1. Setup
+
+2. Raster geometry operations
+    
+2. Vector geometry operations
+
+2. Raster on vectors
+
+2. Making pretty maps
+
+]
+
+]
+
+.pull-lright[
+
+```{r, echo = FALSE, fig.width = 800/72, fig.asp = 0.8, out.width = "90%", fig.align = "right"}
+
+par(pty = "s",
+    mfrow = c(1, 2),
+    mar = c(2,2,2,0),
+    oma = rep(1, 4))
+
+plot(0,
+     type = "n",
+     xlim = c(0, 10),
+     ylim = c(0, 10),
+     xlab = "",
+     ylab = "",
+     xaxs = "i",
+     yaxs = "i",
+     xaxt = "n",
+     yaxt = "n")
+
+title(main = "Vector", 
+      adj = 0, 
+      line = 0.3,
+      cex.main = 2)
+
+xy <- par("usr")
+
+rect(xleft = xy[1],
+     xright = xy[2],
+     ybottom = xy[3],
+     ytop = xy[4],
+     col = adjustcolor("#d4fcf5", alpha.f = 0.3))
+
+box()
+
+rect(xleft = 5,
+     xright = 9,
+     ybottom = 2,
+     ytop = 6,
+     col = adjustcolor("#de8500", alpha.f = 0.9),
+     border = "#693f00",
+     lwd = 3)
+
+set.seed(12345)
+
+n <- 20
+
+x <- pmin(9.7, pmax(0.3, rnorm(n, mean = 3, sd = 1.5)))
+y <- pmin(9.7, pmax(0.3, rnorm(n, mean = 6, sd = 1.5)))
+
+points(x = x,
+       y = y,
+       bg = adjustcolor("#edc600", alpha.f = 0.6),
+       col = "#967e02",
+       pch = 21,
+       lwd = 2,
+       cex = 4)
+
+lines(x = c(0.3, 0.3, 2.0, 2.5, 8.5, 9.8, 9.8),
+      y = c(7.0, 0.3, 2.5, 1.5, 6.5, 9.8, 0.3),
+      col = adjustcolor("#fffb00", alpha.f = 0.5),
+      lwd = 10)
+
+lines(x = c(0.3, 0.3, 2.0, 2.5, 8.5, 9.8, 9.8),
+      y = c(7.0, 0.3, 2.5, 1.5, 6.5, 9.8, 0.3),
+      col = "#d44402",
+      lwd = 5)
+
+
+
+m <- matrix(runif(100, min = 0, max = 100),
+            nrow = 10,
+            ncol = 10)
+
+image(x = seq(0.5, 9.5, by = 1),
+      y = seq(0.5, 9.5, by = 1),
+      z = m,
+      col = terrain.colors(100),
+      xlim = c(0, 10),
+      ylim = c(0, 10),
+      xlab = "",
+      ylab = "",
+      xaxt = "n",
+      yaxt = "n")
+
+title(main = "Raster", 
+      adj = 0, 
+      line = 0.3,
+      cex.main = 2)
+
+grid(nx = 10,
+     ny = 10,
+     lty = 1,
+     col = "gray50")
+
+box()
+
+```
+
+]
+
+---
+
+## Setup
+
+```{r, eval = FALSE}
+
+# install packages
+install.packagess(c("mapview", "tmap", "viridis"))
+
+# attach packages
+library(here)
+library(mapview)
+library(raster)
+library(sf)
+library(spData)
+library(spDataLarge)
+library(tmap)
+library(viridis)
+library(dplyr)
+
+```
+
+
+---
+
+## Rasters
+
+```{r}
+
+fn <- system.file("raster/srtm.tif", 
+                  package = "spDataLarge")
+
+elevation <- raster(fn)
+
+# define color palette function
+yeorbr_colors <- colorRampPalette(c("yellow", "orange", "brown"))
+
+```
+
+
+---
+
+## `aggregate()` raster
+
+```{r}
+
+dem_agg <- aggregate(elevation, fact = 30, fun = mean)
+
+```
+
+```{r, echo = FALSE, fig.width = 800/72, fig.asp = 0.4, crop = FALSE, out.width = "100%"}
+
+dem_disagg <- disaggregate(dem_agg, fact = 30, method = "bilinear")
+
+par(pty = "s",
+    mfrow = c(1, 3),
+    mar = rep(1, 4),
+    oma = rep(0, 4),
+    cex.main = 2)
+
+plot(elevation, col = yeorbr_colors(36), yaxt = "n", xaxt = "n", legend=FALSE, axes=FALSE, box=FALSE)
+
+plot(extent(elevation), add = TRUE)
+
+title(main = "Original", adj = 0.1, line = 0.6)
+
+plot(dem_agg, col = yeorbr_colors(36), yaxt = "n", xaxt = "n", legend=FALSE, axes=FALSE, box=FALSE)
+
+plot(extent(dem_agg), add = TRUE)
+
+title(main = "Aggregated", adj = 0.125, line = 0.6)
+
+rr <- dem_disagg
+
+rr <- setValues(rr, 0)
+
+plot(rr, col = "white", xaxt = "n", yaxt = "n", legend=FALSE, axes=FALSE, box=FALSE)
+
+plot(extent(dem_disagg), add = TRUE)
+
+title(main = "Disaggregated", adj = 0.13, line = 0.6)
+
+```
+
+
+---
+
+## `disaggregate()` raster
+
+```{r, eval = FALSE}
+
+dem_disagg <- disaggregate(dem_agg, fact = 30, method = "bilinear")
+
+```
+
+```{r, echo = FALSE, fig.width = 800/72, fig.asp = 0.4, crop = FALSE, out.width = "100%"}
+
+par(pty = "s",
+    mfrow = c(1, 3),
+    mar = rep(1, 4),
+    oma = rep(0, 4),
+    cex.main = 2)
+
+plot(elevation, col = yeorbr_colors(36), yaxt = "n", xaxt = "n", legend=FALSE, axes=FALSE, box=FALSE)
+
+plot(extent(elevation), add = TRUE)
+
+title(main = "Original", adj = 0.1, line = 0.6)
+
+plot(dem_agg, col = yeorbr_colors(36), yaxt = "n", xaxt = "n", legend=FALSE, axes=FALSE, box=FALSE)
+
+plot(extent(dem_agg), add = TRUE)
+
+title(main = "Aggregated", adj = 0.125, line = 0.6)
+
+plot(dem_disagg, col = yeorbr_colors(36), yaxt = "n", xaxt = "n", legend=FALSE, axes=FALSE, box=FALSE)
+
+plot(extent(dem_disagg), add = TRUE)
+
+title(main = "Disaggregated", adj = 0.13, line = 0.6)
+
+```
+
+
+---
+
+## Vectors
+
+```{r}
+
+gpkg <- here("gis", "project.gpkg")
+
+st_layers(gpkg)
+
+world <- read_sf(gpkg, layer = "world")
+
+states <- read_sf(gpkg, layer = "states")
+
+```
+
+
+---
+
+## `st_centroid()` sf
+
+```{r}
+
+centers <- st_centroid(states)
+
+```
+
+```{r, echo = FALSE}
+
+plot(st_geometry(states))
+
+plot(st_geometry(centers), 
+     pch = 21, 
+     bg = adjustcolor("blue", alpha.f = 0.5), 
+     col = "navyblue", 
+     cex = 1.5, 
+     add = TRUE)
+
+```
+
+
+---
+
+## `st_buffer()` sf
+
+```{r}
+
+buffs <- centers %>% st_buffer(dist = 250000)
+
+```
+
+```{r, echo = FALSE}
+
+plot(st_geometry(buffs))
+
+plot(st_geometry(centers), 
+     pch = 21, 
+     bg = adjustcolor("blue", alpha.f = 0.5), 
+     col = "navyblue", 
+     cex = 1.5, 
+     add = TRUE)
+
+```
+
+
+---
+
+## `st_buffer()` sf
+
+```{r}
+
+buffs <- states %>% st_union() %>% st_buffer(dist = 150000)
+
+```
+
+```{r, echo = FALSE}
+
+plot(st_geometry(buffs))
+
+plot(st_geometry(states), add = TRUE)
+
+```
+
+
+---
+
+## Clipping sf
+
+```{r, fig.width = 350/72}
+
+b <- st_sfc(st_point(c(0, 1)), st_point(c(1, 1))) # create 2 points
+
+b <- st_buffer(b, dist = 1) # convert points to circles
+
+plot(b)
+
+text(x = c(-0.5, 1.5), y = 1, labels = c("x", "y")) # add text
+
+```
+
+
+---
+
+## Clipping sf
+
+```{r, fig.width = 350/72}
+
+x_and_y <- st_intersection(b[1], b[2])
+
+plot(b)
+
+plot(x_and_y, col = "lightgrey", add = TRUE) # color intersecting area
+
+text(x = c(-0.5, 1.5), y = 1, labels = c("x", "y")) # add text
+
+```
+
+
+---
+
+## Clipping sf
+
+```{r, echo = FALSE, out.width = "80%"}
+
+knitr::include_graphics("https://geocompr.robinlovelace.net/05-geometry-operations_files/figure-html/venn-clip-1.png")
+
+```
+
+
+
+---
+
+## `st_cast()` sf
+
+.pull-left[
+
+Convert MULTIPOLYGON to POLYGON
+
+```{r}
+
+state_polys <- st_cast(states, "POLYGON")
+
+```
+
+```{r, echo = FALSE}
+
+state_polys$id <- 1:nrow(state_polys)
+
+plot(state_polys["id"], key.pos = NULL, main = NULL)
+
+```
+
+]
+
+.pull-right[
+
+Convert POLYGON to LINESTRING
+
+```{r}
+
+state_lines <- st_cast(state_polys, "LINESTRING")
+
+```
+
+```{r, echo = FALSE}
+
+state_lines$id <- 1:nrow(state_lines)
+
+plot(state_lines["id"], key.pos = NULL, main = NULL)
+
+```
+
+]
+
+
+---
+
+## Vector on Raster
+
+```{r}
+
+sf <- st_sfc(st_point(c(-113, 37.4)), crs = 4326)
+
+sf <- st_buffer(sf, dist = 10000)
+
+sf <- st_sf(geometry = sf)
+
+```
+
+```{r, echo = FALSE}
+
+par(pty = "s",
+    )
+
+plot(elevation, col = yeorbr_colors(36), yaxt = "n", xaxt = "n", legend=FALSE, axes=FALSE, box=FALSE)
+
+plot(extent(elevation), add = TRUE))
+
+plot(st_geometry(sf), 
+     col = adjustcolor("gray", alpha.f = 0.5),
+     border = "darkgray",
+     lwd = 2,
+     add = TRUE)
+
+```
+
+
+
+
+---
+
+## `crop()` raster with sf
+
+```{r}
+
+rr <- crop(elevation, sf)
+
+```
+
+```{r, echo = FALSE}
+
+par(pty = "s")
+
+plot(rr, col = yeorbr_colors(36), yaxt = "n", xaxt = "n", legend=FALSE, axes=FALSE, box=FALSE)
+
+plot(extent(elevation), add = TRUE))
+
+plot(st_geometry(sf), 
+     col = "transparent",
+     border = "darkgray",
+     lwd = 2,
+     add = TRUE)
+
+```
+
+
+
+---
+
+## `mask()` raster with sf
+
+```{r}
+
+rr <- mask(elevation, sf)
+
+```
+
+```{r, echo = FALSE}
+
+par(pty = "s")
+
+plot(rr, col = yeorbr_colors(36), yaxt = "n", xaxt = "n", legend=FALSE, axes=FALSE, box=FALSE)
+
+plot(extent(elevation), add = TRUE))
+
+plot(st_geometry(sf), 
+     col = "transparent",
+     border = "darkgray",
+     lwd = 2,
+     add = TRUE)
+
+```
+
+---
+
+## `extract()` raster with sf
+
+```{r, echo = FALSE}
+
+extract <- raster::extract
+
+```
+
+
+```{r}
+
+pts <- st_sf(geometry = st_sample(sf, size = 10))
+
+extract(elevation, pts)
+
+```
+
+
+
+---
+
+## Thematic maps
+
+
