@@ -1,0 +1,739 @@
+
+---
+title: "Spatial Data in R"
+subtitle: "Working with simple features"
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: [xaringan-themer.css, custom_style.css]
+    nature:
+      highlightStyle: magula
+      highlightLines: TRUE
+      ratio: '16:9'
+---
+
+```{r, echo = FALSE, child = here::here("lessons/before_chunk.Rmd")}
+```
+
+## Outline
+
+.pull-lleft[
+
+<p style="margin-bottom:1.65em;"></p>
+
+.bg-white.b--dark-gray.ba.bw1.br2.shadow-5.ph2.pv1.mh1.mt3.w-100[
+
+1. Setup
+
+2. Simple feature overview
+
+2. Basic plotting
+
+2. Reading and writing
+
+2. Projecting
+
+2. Attribute operations
+
+2. Spatial operations
+
+2. Geometry operations
+
+]
+
+]
+
+
+
+---
+
+## Setup
+
+* Download and open the worksheet [_simple_features.Rmd_]().  
+
+* Install packages  
+
+```{r, eval = FALSE}
+
+install.packages(c("dplyr", "here", "raster", "spData", "sf", "viridis"))
+
+install.packages("spDataLarge", 
+                 repos = "https://nowosad.github.io/drat/", 
+                 type = "source")
+
+```
+
+* Attach packages
+
+```{r}
+
+library(raster)
+library(spData)
+library(spDataLarge)
+library(sf)
+library(viridis)
+library(dplyr)
+
+```
+
+```{r, echo = FALSE}
+
+select <- dplyr::select
+
+```
+
+```{r, echo = FALSE}
+
+data("world", package = "spData")
+
+world <- subset(world, select = c(name_long, continent, area_km2, pop, gdpPercap))
+
+data("us_states", package = "spData")
+
+states <- us_states
+
+data("coffee_data", package = "spData")
+data("us_states_df", package = "spData")
+
+coffee_data <- coffee_data
+us_states_df <- us_states_df
+
+```
+
+
+
+---
+background-image: url(figures/allison_horst_sf.png)
+background-position: right
+background-size: 70%
+
+## Why `sf`?
+
+.pull-lleft[
+
+1. It's __fast__ processing,
+
+2. It's __pretty__ maps,
+
+3. It's __rectangular__ data,
+
+4. It's __tidy__ design, and
+
+5. It's __consistent__ syntax, 
+   just look for the [`st` prefix](https://stackoverflow.com/questions/7234679/what-is-st-in-postgis)
+
+]
+
+.attribute-image[
+Artwork by [Allison Horst](https://github.com/allisonhorst/stats-illustrations).
+]
+
+
+---
+background-image: url(figures/simple_feature_anatomy-blank.png)
+background-size: contain
+
+---
+background-image: url(figures/simple_feature_anatomy-feature.png)
+background-size: contain
+count: false
+
+---
+background-image: url(figures/simple_feature_anatomy-attribute.png)
+background-size: contain
+count: false
+
+
+---
+background-image: url(figures/simple_feature_anatomy-sfc.png)
+background-size: contain
+count: false
+
+
+---
+background-image: url(figures/simple_feature_anatomy-sfg.png)
+background-size: contain
+count: false
+
+
+
+---
+
+## From the ground up
+
+```{r}
+
+point1 <- st_point(c(432000, 4513100))           # create the feature geometry (sfg)
+point2 <- st_point(c(436750, 4518500))
+
+sf_column <- st_sfc(point1, point2, crs = 26912) # create the geometry column (sfc)
+
+st_sf(id = 1:2,                                  # create the simple feature table
+      location = "red butte canyon",
+      geometry = sf_column)
+
+```
+
+Similar to `data.frame(col1 = ..., col2 = ...)`, but with a geometry column.
+
+
+
+---
+
+## Plot Attribute
+
+```{r, eval = FALSE}
+
+plot(world["area_km2"], pal = viridis)
+
+```
+
+```{r, echo = FALSE, fig.asp = 0.5, fig.width = 900/72}
+
+par(mar = rep(1, 4), 
+    oma = rep(0, 4))
+
+plot(world["area_km2"], 
+     pal = viridis, 
+     border = "gray75", 
+     lwd = 1.9, 
+     key.pos = NULL,
+     main = NULL)
+
+```
+
+
+
+---
+
+## Plot Geometry
+
+```{r, eval = FALSE}
+
+plot(st_geometry(world), col = "gray90")
+
+```
+
+```{r, echo = FALSE, fig.asp = 0.5, fig.width = 900/72}
+
+par(mar = rep(1, 4), 
+    oma = rep(0, 4))
+
+plot(st_geometry(world), col = "gray90")
+
+```
+
+
+
+---
+background-image: url(figures/indonesia_background_image.png)
+background-size: contain
+
+.pull-bright[
+
+## .right[ __Geometry__ type? ]
+
+```{r}
+
+indonesia <- subset(world, name_long == "Indonesia")
+
+st_geometry_type(indonesia)
+  
+```
+
+]
+
+
+
+---
+
+## Coordinate Reference System
+
+.pull-left[
+
+```{r}
+
+st_crs(world)
+
+```
+
+]
+
+.pull-right[
+
+```{r}
+
+st_crs(world)$epsg
+
+```
+
+<br>
+
+```{r, echo = FALSE, fig.link = "https://epsg.io/", out.width = "100%"}
+
+knitr::include_graphics("figures/epsg-banner.png")
+
+```
+
+]
+
+
+
+---
+
+## Re-projecting Simple Features
+
+.pull-left[
+
+Google Pseudo-Mercator
+
+```{r, eval = FALSE}
+
+st_transform(world, crs = 3857) 
+
+```
+
+```{r, echo = FALSE, fig.width = 500/72}
+
+par(mar = rep(1, 4), 
+    oma = rep(0, 4))
+
+new_world <- st_transform(world, crs = 3857)
+
+plot(st_geometry(new_world), col = "gray90")
+
+```
+
+
+]
+
+.pull-right[
+
+World Mollweide
+
+```{r, eval = FALSE}
+
+st_transform(world, crs = "+proj=moll")
+
+```
+
+```{r, echo = FALSE, fig.width = 500/72}
+
+par(mar = rep(1, 4), 
+    oma = rep(0, 4))
+
+world_mollweide_gr <- 
+  st_graticule(lat = c(-89.9, seq(-80, 80, 20), 89.9)) %>%
+  lwgeom::st_transform_proj(crs = "+proj=moll")
+
+new_world <- st_transform(world, crs = "+proj=moll")
+
+plot(st_geometry(world_mollweide_gr), col = "gray80")
+
+plot(st_geometry(new_world), col = "gray90", add = TRUE)
+
+```
+
+]
+
+
+
+---
+class: bg_pipe middle
+
+.center.bg-white-70.br3.pa2[
+### Some basic piping rules:
+
+`x %>% f` is equivalent to `f(x)`  
+`x %>% f(y)` is equivalent to `f(x, y)`  
+`x %>% f %>% g` is equivalent to `g(f(x))` &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+]
+
+
+
+---
+
+## `select()` columns
+
+```{r}
+
+world %>% select(name_long)
+
+```
+
+
+
+---
+
+## `filter()` rows
+
+```{r}
+
+world %>% filter(area_km2 < 10000)
+
+```
+
+
+
+---
+
+## `mutate()` variables
+
+```{r, eval = FALSE}
+
+world %>% mutate(pop_dens = (pop / area_km2))
+
+```
+
+```{r, echo = FALSE}
+
+world %>% 
+  mutate(pop_dens = (pop / area_km2)) %>% 
+  select(name_long, pop_dens, pop, area_km2)
+
+```
+
+
+
+---
+
+## `summarize()` groups
+
+.pull-left[
+
+```{r, eval = FALSE}
+
+states %>% 
+  # do something here
+  # do another thing
+  st_geometry() %>% 
+  plot()
+
+```
+
+```{r, echo = FALSE}
+
+par(mar = rep(1, 4),
+    oma = rep(0, 4))
+
+states %>% 
+  # do something here
+  # do another thing
+  st_geometry() %>% 
+  plot()
+
+```
+
+]
+
+.pull-right[
+
+```{r, eval = FALSE}
+
+states %>% 
+  group_by(REGION) %>% 
+  summarize(mean_area = mean(AREA)) %>% 
+  st_geometry() %>% 
+  plot()
+
+```
+
+```{r, echo = FALSE}
+
+par(mar = rep(1, 4),
+    oma = rep(0, 4))
+
+states %>% 
+  group_by(REGION) %>% 
+  summarize(mean_area = mean(AREA)) %>% 
+  st_geometry() %>% 
+  plot()
+
+```
+
+]
+
+
+---
+
+## `summarize()` groups
+
+```{r}
+
+states %>% 
+  select(NAME, REGION, AREA, ttl__15) %>% 
+  group_by(REGION) %>% 
+  summarize(pop = sum(ttl__15),
+            n_states = n()) %>%
+  st_drop_geometry()
+  
+```
+
+
+---
+
+## `left_join()` tables
+
+```{r}
+
+world_coffee <- world %>% left_join(coffee_data)
+
+select(world_coffee, name_long, coffee_production_2017)
+
+```
+
+
+---
+
+## `left_join()` tables
+
+```{r, eval = FALSE}
+
+plot(world_coffee["coffee_production_2017"], pal = viridis)
+
+```
+
+```{r, echo = FALSE, fig.asp = 0.4, fig.width = 900/72, out.width = "75%"}
+
+plot(world_coffee["coffee_production_2017"], 
+     key.pos = NULL, 
+     main = NULL, 
+     pal = viridis)
+
+```
+
+
+---
+
+## `left_join()` tables
+
+```{r}
+
+state_data <- states %>% left_join(us_states_df, by = c("NAME" = "state"))
+
+select(state_data, NAME, median_income_15)
+
+```
+
+
+---
+
+## `left_join()` tables
+
+```{r, eval = FALSE}
+
+plot(state_data["median_income_15"])
+
+```
+
+```{r, echo = FALSE, fig.asp = 0.4, fig.width = 900/72, out.width = "75%"}
+
+plot(state_data["median_income_15"], key.pos = NULL, main = NULL)
+
+```
+
+
+---
+
+## `st_filter()` geometries
+
+.pull-left[
+
+```{r}
+
+# sample
+rand_ohs <- states %>% 
+  st_sample(size = 100) %>% 
+  st_sf()
+
+```
+
+```{r, echo = FALSE}
+
+plot(st_geometry(states))
+
+plot(rand_ohs, 
+     pch = 19, 
+     col = "gray85", 
+     cex = 1.2, 
+     add = TRUE)
+
+```
+
+]
+
+--
+count: false
+
+.pull-right[
+
+```{r}
+
+the_west <- states %>% filter(REGION == "West")
+# spatial filter
+westers <- rand_ohs %>% 
+  st_filter(the_west, .predicate = st_intersects)
+
+```
+
+```{r, echo = FALSE}
+
+plot(st_geometry(states))
+
+plot(rand_ohs, 
+     pch = 19, 
+     col = "gray85", 
+     cex = 1.2, 
+     add = TRUE)
+
+plot(westers, 
+     pch = 21, 
+     bg = adjustcolor("red", alpha.f = 0.5), 
+     col = "red3", 
+     cex = 1.5, 
+     add = TRUE)
+
+```
+
+]
+
+
+---
+
+## `st_filter()` geometries
+
+.pull-left[
+
+```{r}
+
+goats <- rand_ohs %>% 
+  st_filter(the_west, 
+            .predicate = st_is_within_distance, 
+            dist = 500000)
+
+```
+
+```{r, echo = FALSE}
+
+plot(st_geometry(states))
+
+plot(rand_ohs, 
+     pch = 19, 
+     col = "gray85", 
+     cex = 1.2, 
+     add = TRUE)
+
+plot(goats, 
+     pch = 21, 
+     bg = adjustcolor("blue", alpha.f = 0.5), 
+     col = "navyblue", 
+     cex = 1.5, 
+     add = TRUE)
+
+```
+
+]
+
+--
+count: false
+
+.pull-right[
+
+```{r, echo = FALSE}
+
+st_not_intersects <- function(x, y, ...) {
+  
+  bob <- st_intersects(x, y, ...)
+  
+  tom <- vector("list", length(bob))
+  
+  tom[which(lengths(bob) == 0)] <- 1
+  
+  return(tom)
+  
+}
+
+```
+
+```{r}
+
+easters <- rand_ohs %>% 
+  # made-up function 
+  st_filter(the_west, 
+            .predicate = st_not_intersects)
+
+```
+
+```{r, echo = FALSE}
+
+plot(st_geometry(states))
+
+plot(rand_ohs, 
+     pch = 19, 
+     col = "gray85", 
+     cex = 1.2, 
+     add = TRUE)
+
+plot(easters, 
+     pch = 21, 
+     bg = adjustcolor("#fcba03", alpha.f = 0.5), 
+     col = "#876300", 
+     cex = 1.5, 
+     add = TRUE)
+
+```
+
+]
+
+---
+
+## `st_join()` geometries
+
+```{r}
+
+rand_ohs %>% st_join(states["NAME"])
+
+```
+
+
+---
+
+## `st_join()` geometries
+
+```{r}
+
+rand_ohs %>% st_join(states,
+                     join = st_is_within_distance,
+                     dist = 1000000)
+
+```
+
+
+---
+
+## `st_join()` geometries
+
+```{r, fig.asp = 0.4, fig.width = 900/72, out.width = "75%"}
+
+rand_ohs %>% 
+  st_join(states[, c("REGION", "ttl__15")]) %>% 
+  group_by(REGION) %>% 
+  summarize(pop = sum(ttl__15)) %>% 
+  plot(pch = 19, cex = 2)
+
+```
+
+
+
+---
+
+## `st_distance()` between sf
+
+```{r}
+
+rand_ohs %>% 
+  sample_n(5) %>% 
+  st_distance()
+
+```

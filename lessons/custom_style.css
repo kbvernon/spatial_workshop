@@ -56,11 +56,11 @@
 
 .pull-aleft {
   float: left;
-  width: 45%;
+  width: 51%;
 }
 .pull-aright {
   float: right;
-  width: 54%;
+  width: 48%;
 }
 .pull-aright ~ * {
   clear: both;
@@ -68,11 +68,11 @@
 
 .pull-bleft {
   float: left;
-  width: 55%;
+  width: 50%;
 }
 .pull-bright {
   float: right;
-  width: 34%;
+  width: 49%;
 }
 .pull-bright ~ * {
   clear: both;
@@ -99,4 +99,28 @@
       left: 0px;
       opacity: 0.3;
       z-index: -1;
+}
+
+
+.attribute-image {
+  display: block;
+  margin-block-start: 1em;
+  margin-block-end: 1em;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  height: 15px;
+  width: auto;
+  position: absolute;
+  left: 20px;
+  bottom: 0px;
+}
+
+.attribute-image p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.remark-slide-content.full-slide-fig{
+  padding: 0px 0px 0px 0px;
+  width: 100%;
 }

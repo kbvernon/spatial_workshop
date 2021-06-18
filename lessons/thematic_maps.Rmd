@@ -1,0 +1,285 @@
+
+---
+title: "Spatial Data in R"
+subtitle: "Working with rasters"
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: [xaringan-themer.css, custom_style.css]
+    nature:
+      highlightStyle: magula
+      highlightLines: TRUE
+      countIncrementalSlides: TRUE
+      ratio: '16:9'
+---
+
+```{r, echo = FALSE, child = here::here("lessons/before_chunk.Rmd")}
+```
+
+## Outline
+
+.pull-lleft[
+
+<p style="margin-bottom:1.65em;"></p>
+
+.bg-white.b--dark-gray.ba.bw1.br2.shadow-5.ph2.pv1.mh1.mt3.w-100[
+
+1. Setup
+
+2. Rasters
+  * Attribute operations
+  * Spatial operations
+    
+2. Vectors
+  * Attribute operations
+  * Spatial operations
+
+]
+
+]
+
+.pull-lright[
+
+```{r, echo = FALSE, fig.width = 800/72, fig.asp = 0.8, out.width = "90%", fig.align = "right"}
+
+par(pty = "s",
+    mfrow = c(1, 2),
+    mar = c(2,2,2,0),
+    oma = rep(1, 4))
+
+plot(0,
+     type = "n",
+     xlim = c(0, 10),
+     ylim = c(0, 10),
+     xlab = "",
+     ylab = "",
+     xaxs = "i",
+     yaxs = "i",
+     xaxt = "n",
+     yaxt = "n")
+
+title(main = "Vector", 
+      adj = 0, 
+      line = 0.3,
+      cex.main = 2)
+
+xy <- par("usr")
+
+rect(xleft = xy[1],
+     xright = xy[2],
+     ybottom = xy[3],
+     ytop = xy[4],
+     col = adjustcolor("#d4fcf5", alpha.f = 0.3))
+
+box()
+
+rect(xleft = 5,
+     xright = 9,
+     ybottom = 2,
+     ytop = 6,
+     col = adjustcolor("#de8500", alpha.f = 0.9),
+     border = "#693f00",
+     lwd = 3)
+
+set.seed(12345)
+
+n <- 20
+
+x <- pmin(9.7, pmax(0.3, rnorm(n, mean = 3, sd = 1.5)))
+y <- pmin(9.7, pmax(0.3, rnorm(n, mean = 6, sd = 1.5)))
+
+points(x = x,
+       y = y,
+       bg = adjustcolor("#edc600", alpha.f = 0.6),
+       col = "#967e02",
+       pch = 21,
+       lwd = 2,
+       cex = 4)
+
+lines(x = c(0.3, 0.3, 2.0, 2.5, 8.5, 9.8, 9.8),
+      y = c(7.0, 0.3, 2.5, 1.5, 6.5, 9.8, 0.3),
+      col = adjustcolor("#fffb00", alpha.f = 0.5),
+      lwd = 10)
+
+lines(x = c(0.3, 0.3, 2.0, 2.5, 8.5, 9.8, 9.8),
+      y = c(7.0, 0.3, 2.5, 1.5, 6.5, 9.8, 0.3),
+      col = "#d44402",
+      lwd = 5)
+
+
+
+m <- matrix(runif(100, min = 0, max = 100),
+            nrow = 10,
+            ncol = 10)
+
+image(x = seq(0.5, 9.5, by = 1),
+      y = seq(0.5, 9.5, by = 1),
+      z = m,
+      col = terrain.colors(100),
+      xlim = c(0, 10),
+      ylim = c(0, 10),
+      xlab = "",
+      ylab = "",
+      xaxt = "n",
+      yaxt = "n")
+
+title(main = "Raster", 
+      adj = 0, 
+      line = 0.3,
+      cex.main = 2)
+
+grid(nx = 10,
+     ny = 10,
+     lty = 1,
+     col = "gray50")
+
+box()
+
+```
+
+]
+
+---
+
+## Setup
+
+```{r, eval = FALSE}
+
+# install packages
+install.packagess(c("dplyr", "tidyr"))
+
+# attach packages
+library(here)
+library(raster)
+library(sf)
+library(spData)
+library(spDataLarge)
+library(tidyr)
+library(dplyr)
+
+```
+
+--
+count: false
+
+__Note!__ 
+
+.bg-white.b--dark-gray.ba.bw1.br2.shadow-5.pa2.mt0[
+
+`dplyr` and `raster` both contain a `select()` function. This may lead to namespace collisions.
+
+]
+
+
+---
+
+## Rasters
+
+.pull-left[
+
+```{r plot-elevation, fig.show = "hide"}
+
+fn <- system.file("raster/srtm.tif", 
+                  package = "spDataLarge")
+
+elevation <- raster(fn)
+
+plot(elevation)
+
+```
+
+]
+
+.pull-right[
+
+```{r ref.label = "plot-elevation", echo = FALSE, fig.width = 500/72, fig.asp = 0.9}
+```
+
+]
+
+
+---
+
+## Subsetting
+
+.pull-left[
+
+By row and column
+
+```{r}
+
+# with [1, 1] being top-left
+elevation[2, 3]
+
+```
+
+By cell number
+
+```{r}
+
+elevation[468]
+
+```
+
+]
+
+.pull-right[
+
+By coordinates
+
+```{r}
+
+x <- xmin(elevation) + c(0.1, 0.2, 0.3)
+y <- ymin(elevation) + c(0.1, 0.2, 0.3)
+
+# extract
+raster::extract(elevation, cbind(x, y))
+
+```
+
+]
+
+
+---
+
+## Smoothing
+
+```{r, eval = FALSE}
+
+# use NAonly = TRUE to smooth only empty pixels
+focal(elevation, w = matrix(1, nrow = 3, ncol = 3), fun = min)
+
+```
+
+```{r, echo = FALSE, out.width = "70%"}
+
+knitr::include_graphics("https://geocompr.robinlovelace.net/figures/04_focal_example.png")
+
+```
+
+
+
+---
+
+## Vectors
+
+```{r}
+
+gpkg <- here("gis", "project.gpkg")
+
+st_layers(gpkg)
+
+world <- read_sf(gpkg, layer = "world")
+
+states <- read_sf(gpkg, layer = "states")
+
+```
+
+
+
+
+
+
+
+

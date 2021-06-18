@@ -7,17 +7,18 @@ navbar:
   right:
     - text: "slides"
       menu:
-        - text: "Introduction to spatial data"
-          href: lessons/lesson_one.html
-        - text: "Spatial and attribute operations"
-          href: lessons/lesson_two.html
-        - text: "Geometry operations and plotting"
-          href: lessons/lesson_three.html
+        - text: "Working with sf"
+          href: lessons/simple_features.html
+        - text: "Working with raster"
+          href: lessons/rasters.html
+        - text: "Making thematic maps"
+          href: lessons/thematic_maps.html
     - text: "worksheets"
       menu:
-        - text: "Exercise One"
-          href: exercises/exercise_one.Rmd
-        - text: "Exercise Two"
-          href: exercises/exercise_two.Rmd
-        - text: "Exercise Three"
+        - text: "Simple Features"
+          href: exercises/ex_simple_features.Rmd
+        - text: "Rasters"
+          href: exercises/ex_rasters.Rmd
+        - text: "Thematic maps"
+          href: exercises/ex_thematic_maps.Rmd
 output: distill::distill_article

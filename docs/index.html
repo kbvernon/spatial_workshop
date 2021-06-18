@@ -88,27 +88,24 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   <!--radix_placeholder_meta_tags-->
   <title>R spatial workshop</title>
 
-  <meta property="description" itemprop="description" content="A somewhat gentle introduction to working with spatial data in R."/>
 
 
 
   <!--  https://developers.facebook.com/docs/sharing/webmasters#markup -->
   <meta property="og:title" content="R spatial workshop"/>
   <meta property="og:type" content="article"/>
-  <meta property="og:description" content="A somewhat gentle introduction to working with spatial data in R."/>
   <meta property="og:locale" content="en_US"/>
   <meta property="og:site_name" content="R spatial workshop"/>
 
   <!--  https://dev.twitter.com/cards/types/summary -->
   <meta property="twitter:card" content="summary"/>
   <meta property="twitter:title" content="R spatial workshop"/>
-  <meta property="twitter:description" content="A somewhat gentle introduction to working with spatial data in R."/>
 
   <!--/radix_placeholder_meta_tags-->
   <!--radix_placeholder_rmarkdown_metadata-->
 
   <script type="text/json" id="radix-rmarkdown-metadata">
-  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","site"]}},"value":[{"type":"character","attributes":{},"value":["R spatial workshop"]},{"type":"character","attributes":{},"value":["A somewhat gentle introduction to working with spatial data in R.\n"]},{"type":"character","attributes":{},"value":["distill::distill_website"]}]}
+  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","site"]}},"value":[{"type":"character","attributes":{},"value":["R spatial workshop"]},{"type":"character","attributes":{},"value":["distill::distill_website"]}]}
   </script>
   <!--/radix_placeholder_rmarkdown_metadata-->
   <!--radix_placeholder_navigation_in_header-->
@@ -2053,7 +2050,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <!--radix_placeholder_front_matter-->
 
 <script id="distill-front-matter" type="text/json">
-{"title":"R spatial workshop","description":"A somewhat gentle introduction to working with spatial data in R.","authors":[]}
+{"title":"R spatial workshop","authors":[]}
 </script>
 
 <!--/radix_placeholder_front_matter-->
@@ -2071,9 +2068,9 @@ slides
 <span class="down-arrow">&#x25BE;</span>
 </button>
 <div class="nav-dropdown-content">
-<a href="lessons/lesson_one.html">Introduction to spatial data</a>
-<a href="lessons/lesson_two.html">Spatial and attribute operations</a>
-<a href="lessons/lesson_three.html">Geometry operations and plotting</a>
+<a href="lessons/simple_features.html">Working with sf</a>
+<a href="lessons/rasters.html">Working with raster</a>
+<a href="lessons/thematic_maps.html">Making thematic maps</a>
 </div>
 </div>
 <div class="nav-dropdown">
@@ -2083,9 +2080,9 @@ worksheets
 <span class="down-arrow">&#x25BE;</span>
 </button>
 <div class="nav-dropdown-content">
-<a href="exercises/exercise_one.Rmd">Exercise One</a>
-<a href="exercises/exercise_two.Rmd">Exercise Two</a>
-<span class="nav-dropdown-header">Exercise Three</span>
+<a href="exercises/ex_simple_features.Rmd">Simple Features</a>
+<a href="exercises/ex_rasters.Rmd">Rasters</a>
+<a href="exercises/ex_thematic_maps.Rmd">Thematic maps</a>
 </div>
 </div>
 <a href="javascript:void(0);" class="nav-toggle">&#9776;</a>
@@ -2100,36 +2097,49 @@ worksheets
 <h1>R spatial workshop</h1>
 <!--radix_placeholder_categories-->
 <!--/radix_placeholder_categories-->
-<p><p>A somewhat gentle introduction to working with spatial data in R.</p></p>
+
 </div>
 
 
 <div class="d-article">
-<p>Slides and worksheets for a three day workshop providing an introduction to working with spatial data in R. Mostly, that means learning how to work with the <a href="https://r-spatial.github.io/sf/">sf</a> and <a href="https://rspatial.github.io/raster/reference/raster-package.html">raster</a> packages. The content and exercises are designed for 3 two-hour meetings.</p>
+<!-- hide title on this page only -->
+<div class="layout-chunk" data-layout="l-body">
+<style type="text/css">
+d-title, d-byline {
+  display: none
+}
+</style>
+</div>
+<div style="margin-top: 6em; margin-bottom: 3em;">
+
+<p>This is the website for the <em>R Spatial Workshop</em> hosted by the <a href="https://uuac.utah.edu/">University of Utah Archaeological Center</a> during the summer of 2021. The goal is to introduce participants to methods and techniques for working with spatial data in R. Mostly, that means learning how to work with the <a href="https://r-spatial.github.io/sf/">sf</a> and <a href="https://rspatial.github.io/raster/reference/raster-package.html">raster</a> packages. The content and exercises are designed for 3 two-hour meetings.</p>
+<h3 id="who-is-this-for">Who is this for?</h3>
+<p>Anyone who has (1) a basic understanding of <em>GIS data and operations</em> and (2) a working familiarity with the <em>R programming language</em>. If you feel rusty on this, or are very new to these topics, I recommend reading through the bookdown text listed below.</p>
+<h3 id="text">Text</h3>
 <p>All lessons are based on <strong>Lovelace, Nowosad, and Muenchow (2021) Geocomputation with R</strong>. It’s open-source and freely available <a href="https://geocompr.robinlovelace.net/">here</a>. This is an excellent resource, and something I find myself consulting quite often. Exercises are a mix of the exercises provided in that text and my own additions.</p>
-<p>Outline:</p>
+<h3 id="outline">Outline</h3>
 <ol type="1">
-<li><strong>Day One: Introduction</strong>
+<li><strong>Day One: Working with <code>sf</code></strong>
 <ul>
-<li>Installation and a brief overview of vector and raster data</li>
-<li>Reading and writing spatial data</li>
-<li>Projecting spatial data</li>
-<li><em>Reading: Ch 2, 6, and 7</em></li>
+<li>Installation and a brief overview of simple features</li>
+<li>Attribute, spatial, and geometric operations on vectors</li>
+<li><em>Reading: sections on vectors in Ch 2-7</em></li>
 </ul></li>
-<li><strong>Day Two: Change, Subset, and Select Data</strong>
+<li><strong>Day Two: Working with <code>raster</code></strong>
 <ul>
-<li>Attribute data operations</li>
-<li>Spatial data operations</li>
-<li><em>Reading: Ch 3 and 4</em></li>
+<li>Installation and a brief over of rasters</li>
+<li>Attribute, spatial, and geometric operations on rasters</li>
+<li>Using simple features in raster operations</li>
+<li><em>Reading: sections on rasters in Ch 2-7</em></li>
 </ul></li>
-<li><strong>Day Three: Change Geometry and Plot</strong>
+<li><strong>Day Three: Making thematic maps</strong>
 <ul>
-<li>Geometry data operations</li>
 <li>Making pretty maps</li>
-<li><em>Reading: Ch 5 and 8</em></li>
-</ul>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div></li>
+<li><em>Reading: Ch 8</em></li>
+</ul></li>
 </ol>
+<div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
 </div>

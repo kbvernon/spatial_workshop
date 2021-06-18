@@ -1,15 +1,8 @@
 
 ```{r, include = FALSE}
-library(dplyr)
-library(here)
 library(knitr)
 library(kableExtra)
-library(mapview)
-library(patchwork)
-library(raster)
-library(sf)
-library(tmap)
-library(viridis)
+
 ```
 
 ```{r, echo = FALSE}
@@ -30,8 +23,7 @@ knitr::opts_chunk$set(echo = TRUE,
                       strip.white = TRUE,
                       fig.align = "center",
                       fig.retina = 2,
-                      fig.asp = 0.7, 
-                      crop = TRUE)
+                      fig.asp = 0.7)
 
 options(htmltools.dir.version = FALSE,
         str = strOptions(vec.len = 2))
@@ -132,11 +124,18 @@ knit_print.sfc = function(x, ..., n = 5L, what = "Geometry set for", append = ""
 ```{r, echo = FALSE}
 
 # define knit_print methods for sfg
-knit_print.sfg = function(x, ..., width = 50) {
+knit_print.sfg <- function(x, ..., width = 50) {
 	f = format(x, ..., width = width)
 	message(f)
 	invisible(f)
 }
+
+```
+
+```{r, echo = FALSE}
+
+# define knit_print methods for geometry type
+knit_print.factor <- function(x, width = 50, ...) print(x, width = 50)
 
 ```
 
