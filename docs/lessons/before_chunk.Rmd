@@ -1,0 +1,208 @@
+
+```{r, include = FALSE}
+library(knitr)
+library(kableExtra)
+
+```
+
+<!-- knitr options --->
+
+```{r setup, echo = FALSE}
+
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE,
+                      error = TRUE,
+                      strip.white = TRUE,
+                      fig.align = "center",
+                      fig.retina = 2,
+                      fig.asp = 0.7)
+
+options(htmltools.dir.version = FALSE,
+        str = strOptions(vec.len = 2))
+
+```
+
+```{r, echo = FALSE}
+knitr::knit_hooks$set(crop = knitr::hook_pdfcrop)
+```
+
+```{r, echo = FALSE}
+
+# define knit_print methods for sf
+knit_print.sf <- function(x, ...) print(x, n = 5)
+
+```
+
+```{r, echo = FALSE}
+
+# define knit_print methods for sfc
+crs_parameters <- sf:::crs_parameters
+
+knit_print.sfc = function(x, ..., n = 5L, what = "Geometry set for", append = "") {
+  sep = if (length(x) != 1) "s" else ""
+  cls = substr(class(x)[1], 5, nchar(class(x)[1]))
+  cat(paste0(what, " ", length(x), " feature", sep, " ", append))
+  if (! is.null(attr(x, "n_empty"))) {
+    ne = attr(x, "n_empty")
+    if (ne > 0)
+      cat(paste0(" (with ", ne, ifelse(ne > 1, " geometries ", " geometry "), "empty)"))
+  }
+  cat("\n")
+  if (length(x)) {
+    cat(paste0("Geometry type: ", cls, "\n"))
+    u = sort(unique(sapply(x, function(x) class(x)[1])))
+    cat(paste0("Dimension:     ", paste(u, collapse = ", "), "\n"))
+  }
+  cat(    paste0("Bounding box:  "))
+  bb = signif(attr(x, "bbox"), options("digits")$digits)
+  cat(paste(paste(names(bb), bb[], sep = ": "), collapse = " "))
+  cat("\n")
+  if( !is.null( attr(x, "z_range"))) {
+    cat(paste0("z_range:       "))
+    zb = signif(attr(x, "z_range"), options("digits")$digits)
+    cat(paste(paste(names(zb), zb[], sep = ": "), collapse = " "))
+    cat("\n")
+  }
+  if( !is.null( attr(x, "m_range"))) {
+    cat(paste0("m_range:       "))
+    mb = signif(attr(x, "m_range"), options("digits")$digits)
+    cat(paste(paste(names(mb), mb[], sep = ": "), collapse = " "))
+    cat("\n")
+  }
+  # attributes: epsg, proj4string, precision
+  crs = st_crs(x)
+  if (is.na(crs))
+    cat(paste0("CRS:           NA\n"))
+  else {
+    p = crs_parameters(crs)
+    if (p$Name == "unknown") {
+      if (!is.character(crs$input) || is.na(crs$input))
+        cat(paste0("proj4string:   ", crs$proj4string, "\n"))
+      else
+        cat(paste0("CRS:           ", crs$input, "\n"))
+    } else if (p$IsGeographic)
+      cat(paste0("Geodetic CRS:  ", p$Name, "\n"))
+    else
+      cat(paste0("Projected CRS: ", p$Name, "\n"))
+    #		if (!is.na(crs$epsg))
+    #			cat(paste0("epsg (SRID):    ", crs$epsg, "\n"))
+  }
+  if (attr(x, "precision") != 0.0) {
+    cat(    paste0("Precision:     "))
+    if (attr(x, "precision") < 0.0)
+      cat("float (single precision)\n")
+    else
+      cat(paste(attr(x, "precision"), "\n"))
+  } # else cat("double (default; no precision model)\n")
+  if (length(x) > n && n > 0)
+    cat(paste0("First ", n, " geometries:\n"))
+  
+  sfgs <- vector(mode = "list", length = min(n, length(x)))
+  
+  for (i in seq_len(min(n, length(x))))
+    if (!inherits(x[[i]], "sfg"))
+      print(x[[i]])
+  else
+    sfgs[[i]] <- format(x[[i]], width = 50)
+  
+  sfgs <- paste0(sfgs, collapse = "\n")
+  cat(sfgs)
+  
+  invisible(x)
+}
+
+```
+
+```{r, echo = FALSE}
+
+# define knit_print methods for sfg
+knit_print.sfg <- function(x, ..., width = 50) {
+	f = format(x, ..., width = width)
+	message(f)
+	invisible(f)
+}
+
+```
+
+```{r, echo = FALSE}
+
+# define knit_print methods for geometry type
+knit_print.factor <- function(x, width = 50, ...) print(x, width = 50)
+
+```
+
+```{r, echo = FALSE}
+
+local({
+  
+  hook_output <- knitr::knit_hooks$get("output")
+
+  knitr::knit_hooks$set(output = function(x, options) {
+
+    regular_output <- hook_output(x, options)
+
+    if (!is.null(options$xclass)) {
+
+      xclass <- paste0(".", options$xclass, collapse = " ")
+
+      new_output <- paste0(xclass, "[", regular_output, "]")
+
+      return(new_output)
+
+    } else {
+
+      return(regular_output)
+
+    }
+
+  })
+  
+})
+
+```
+
+
+
+
+<!-- xaringanExtra options --->
+
+```{r xaringan-themer, include = FALSE, warning = FALSE}
+
+library(xaringanthemer)
+
+style_duo_accent(
+  primary_color = "#5e5e5e",
+  secondary_color = "#CC0000",
+  colors = c(white = "#FFFFFF"),
+  inverse_header_color = "#FFFFFF",
+  code_font_google = google_font("Fira Mono"),
+  code_font_size = "0.8rem",
+  header_h1_font_size = "55px",
+  header_h2_font_size = "35px",
+  header_h3_font_size = "20px"
+)
+
+```
+
+```{r xaringan-animate-css, echo = FALSE}
+library(xaringanExtra)
+use_animate_css()
+```
+
+```{r xaringan-tile-view, echo=FALSE}
+xaringanExtra::use_tile_view()
+```
+
+```{r xaringan-tachyons, echo=FALSE}
+xaringanExtra::use_tachyons()
+```
+
+```{r xaringanExtra-clipboard, echo=FALSE}
+xaringanExtra::use_clipboard()
+```
+
+```{r xaringanExtra, echo = FALSE}
+xaringanExtra::use_progress_bar(color = "#CC0000", location = "top")
+```
+

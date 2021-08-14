@@ -1,0 +1,20 @@
+{
+  "articles": [
+    {
+      "path": "about.html",
+      "title": "About this site",
+      "description": "Some additional details about the website",
+      "author": [],
+      "contents": "\r\n\r\n\r\n\r\n",
+      "last_modified": "2021-08-14T17:09:20-06:00"
+    },
+    {
+      "path": "index.html",
+      "title": "R spatial workshop",
+      "author": [],
+      "contents": "\r\n\r\n\r\n\r\nd-title, d-byline {\r\n  display: none\r\n}\r\n\r\n\r\n\r\nThis is the website for the R Spatial Workshop hosted by the University of Utah Archaeological Center during the summer of 2021. The goal is to introduce participants to methods and techniques for working with spatial data in R. Mostly, that means learning how to work with the sf and raster packages. The content and exercises are designed for 3 two-hour meetings.\r\nWho is this for?\r\nAnyone who has (1) a basic understanding of GIS data and operations and (2) a working familiarity with the R programming language. If you feel rusty on this, or are very new to these topics, I recommend reading through the bookdown text listed below.\r\nText\r\nAll lessons are based on Lovelace, Nowosad, and Muenchow (2021) Geocomputation with R. It’s open-source and freely available here. This is an excellent resource, and something I find myself consulting quite often. Exercises are a mix of the exercises provided in that text and my own additions.\r\nOutline\r\nDay One: Working with sf\r\nInstallation and a brief overview of simple features\r\nAttribute, spatial, and geometric operations on vectors\r\nReading: sections on vectors in Ch 2-7\r\n\r\nDay Two: Working with raster\r\nInstallation and a brief over of rasters\r\nAttribute, spatial, and geometric operations on rasters\r\nUsing simple features in raster operations\r\nReading: sections on rasters in Ch 2-7\r\n\r\nDay Three: Making thematic maps\r\nMaking pretty maps\r\nReading: Ch 8\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n",
+      "last_modified": "2021-08-14T17:09:24-06:00"
+    }
+  ],
+  "collections": []
+}
