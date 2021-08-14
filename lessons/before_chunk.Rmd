@@ -5,13 +5,6 @@ library(kableExtra)
 
 ```
 
-```{r, echo = FALSE}
-
-select <- dplyr::select
-
-```
-
-
 <!-- knitr options --->
 
 ```{r setup, echo = FALSE}
@@ -138,6 +131,37 @@ knit_print.sfg <- function(x, ..., width = 50) {
 knit_print.factor <- function(x, width = 50, ...) print(x, width = 50)
 
 ```
+
+```{r, echo = FALSE}
+
+local({
+  
+  hook_output <- knitr::knit_hooks$get("output")
+
+  knitr::knit_hooks$set(output = function(x, options) {
+
+    regular_output <- hook_output(x, options)
+
+    if (!is.null(options$xclass)) {
+
+      xclass <- paste0(".", options$xclass, collapse = " ")
+
+      new_output <- paste0(xclass, "[", regular_output, "]")
+
+      return(new_output)
+
+    } else {
+
+      return(regular_output)
+
+    }
+
+  })
+  
+})
+
+```
+
 
 
 

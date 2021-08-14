@@ -124,3 +124,5 @@
   padding: 0px 0px 0px 0px;
   width: 100%;
 }
+
+.small .remark-code { font-size: 65% !important; }

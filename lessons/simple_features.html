@@ -3,7 +3,7 @@
   <head>
     <title>Spatial Data in R</title>
     <meta charset="utf-8" />
-    <meta name="date" content="2021-06-17" />
+    <meta name="date" content="2021-08-14" />
     <script src="libs/header-attrs/header-attrs.js"></script>
     <link href="libs/animate.css/animate.xaringan.css" rel="stylesheet" />
     <link href="libs/tile-view/tile-view.css" rel="stylesheet" />
@@ -23,7 +23,7 @@ class: center, middle, inverse, title-slide
 
 # Spatial Data in R
 ## Working with simple features
-### 2021-06-17
+### 2021-08-14
 
 ---
 
@@ -32,10 +32,10 @@ class: center, middle, inverse, title-slide
 
 
 
-
-
-
 &lt;!-- knitr options ---&gt;
+
+
+
 
 
 
@@ -125,7 +125,7 @@ class: center, middle, inverse, title-slide
 
 
 ```r
-install.packages(c("dplyr", "here", "raster", "spData", "sf", "viridis"))
+install.packages(c("dplyr", "here", "spData", "sf", "viridis"))
 
 install.packages("spDataLarge", 
                  repos = "https://nowosad.github.io/drat/", 
@@ -136,15 +136,12 @@ install.packages("spDataLarge",
 
 
 ```r
-library(raster)
 library(spData)
 library(spDataLarge)
 library(sf)
 library(viridis)
 library(dplyr)
 ```
-
-
 
 
 
@@ -245,7 +242,7 @@ Similar to `data.frame(col1 = ..., col2 = ...)`, but with a geometry column.
 plot(world["area_km2"], pal = viridis)
 ```
 
-&lt;img src="simple_features_files/figure-html/unnamed-chunk-8-1.png" width="900" style="display: block; margin: auto;" /&gt;
+&lt;img src="simple_features_files/figure-html/unnamed-chunk-7-1.png" width="900" style="display: block; margin: auto;" /&gt;
 
 
 
@@ -258,7 +255,7 @@ plot(world["area_km2"], pal = viridis)
 plot(st_geometry(world), col = "gray90")
 ```
 
-&lt;img src="simple_features_files/figure-html/unnamed-chunk-10-1.png" width="900" style="display: block; margin: auto;" /&gt;
+&lt;img src="simple_features_files/figure-html/unnamed-chunk-9-1.png" width="900" style="display: block; margin: auto;" /&gt;
 
 
 
@@ -297,21 +294,34 @@ st_geometry_type(indonesia)
 st_crs(world)
 ```
 
+.small[
+
 ```
 ## Coordinate Reference System:
 ##   User input: EPSG:4326 
 ##   wkt:
-## GEOGCS["WGS 84",
-##     DATUM["WGS_1984",
-##         SPHEROID["WGS 84",6378137,298.257223563,
-##             AUTHORITY["EPSG","7030"]],
-##         AUTHORITY["EPSG","6326"]],
+## GEOGCRS["WGS 84",
+##     DATUM["World Geodetic System 1984",
+##         ELLIPSOID["WGS 84",6378137,298.257223563,
+##             LENGTHUNIT["metre",1]]],
 ##     PRIMEM["Greenwich",0,
-##         AUTHORITY["EPSG","8901"]],
-##     UNIT["degree",0.0174532925199433,
-##         AUTHORITY["EPSG","9122"]],
-##     AUTHORITY["EPSG","4326"]]
+##         ANGLEUNIT["degree",0.0174532925199433]],
+##     CS[ellipsoidal,2],
+##         AXIS["geodetic latitude (Lat)",north,
+##             ORDER[1],
+##             ANGLEUNIT["degree",0.0174532925199433]],
+##         AXIS["geodetic longitude (Lon)",east,
+##             ORDER[2],
+##             ANGLEUNIT["degree",0.0174532925199433]],
+##     USAGE[
+##         SCOPE["Horizontal component of 3D system."],
+##         AREA["World."],
+##         BBOX[-90,-180,90,180]],
+##     ID["EPSG",4326]]
 ```
+
+]
+
 
 ]
 
@@ -347,7 +357,7 @@ Google Pseudo-Mercator
 st_transform(world, crs = 3857) 
 ```
 
-&lt;img src="simple_features_files/figure-html/unnamed-chunk-16-1.png" width="500" style="display: block; margin: auto;" /&gt;
+&lt;img src="simple_features_files/figure-html/unnamed-chunk-15-1.png" width="500" style="display: block; margin: auto;" /&gt;
 
 
 ]
@@ -361,7 +371,7 @@ World Mollweide
 st_transform(world, crs = "+proj=moll")
 ```
 
-&lt;img src="simple_features_files/figure-html/unnamed-chunk-18-1.png" width="500" style="display: block; margin: auto;" /&gt;
+&lt;img src="simple_features_files/figure-html/unnamed-chunk-17-1.png" width="500" style="display: block; margin: auto;" /&gt;
 
 ]
 
@@ -393,16 +403,16 @@ world %&gt;% select(name_long)
 ## Simple feature collection with 177 features and 1 field
 ## Geometry type: MULTIPOLYGON
 ## Dimension:     XY
-## Bounding box:  xmin: -180 ymin: -90 xmax: 180 ymax: 83.64513
+## Bounding box:  xmin: -180 ymin: -89.9 xmax: 180 ymax: 83.64513
 ## Geodetic CRS:  WGS 84
 ## # A tibble: 177 x 2
 ##   name_long                                                                 geom
 ##   &lt;chr&gt;                                                       &lt;MULTIPOLYGON [°]&gt;
-## 1 Fiji          (((180 -16.06713, 180 -16.55522, 179.3641 -16.80135, 178.7251 -~
-## 2 Tanzania      (((33.90371 -0.95, 34.07262 -1.05982, 37.69869 -3.09699, 37.766~
-## 3 Western Saha~ (((-8.66559 27.65643, -8.665124 27.58948, -8.6844 27.39574, -8.~
-## 4 Canada        (((-122.84 49, -122.9742 49.00254, -124.9102 49.98456, -125.624~
-## 5 United States (((-122.84 49, -120 49, -117.0312 49, -116.0482 49, -113 49, -1~
+## 1 Fiji          (((-180 -16.55522, -179.9174 -16.50178, -179.7933 -16.02088, -1~
+## 2 Tanzania      (((33.90371 -0.95, 31.86617 -1.02736, 30.76986 -1.01455, 30.419~
+## 3 Western Saha~ (((-8.66559 27.65643, -8.817828 27.65643, -8.794884 27.1207, -9~
+## 4 Canada        (((-132.71 54.04001, -133.18 54.16998, -133.2397 53.85108, -133~
+## 5 United States (((-171.7317 63.78252, -171.7911 63.40585, -171.5531 63.31779, ~
 ## # ... with 172 more rows
 ```
 
@@ -426,11 +436,11 @@ world %&gt;% filter(area_km2 &lt; 10000)
 ## # A tibble: 7 x 6
 ##   name_long  continent area_km2     pop gdpPercap                           geom
 ## * &lt;chr&gt;      &lt;chr&gt;        &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;             &lt;MULTIPOLYGON [°]&gt;
-## 1 Puerto Ri~ North Am~    9225. 3534874    35066. (((-66.28243 18.51476, -65.77~
-## 2 Palestine  Asia         5037. 4294682     4320. (((35.39756 31.48909, 34.9274~
-## 3 Vanuatu    Oceania      7490.  258850     2892. (((167.2168 -15.89185, 167.84~
-## 4 Luxembourg Europe       2417.  556319    93655. (((6.043073 50.12805, 6.24275~
-## 5 Northern ~ Asia         3786.      NA       NA  (((32.73178 35.14003, 32.8024~
+## 1 Puerto Ri~ North Am~    9225. 3534874    35066. (((-66.28243 18.51476, -67.10~
+## 2 Palestine  Asia         5037. 4294682     4320. (((35.39756 31.48909, 35.5452~
+## 3 Vanuatu    Oceania      7490.  258850     2892. (((166.7932 -15.66881, 167.00~
+## 4 Luxembourg Europe       2417.  556319    93655. (((6.043073 50.12805, 5.78241~
+## 5 Northern ~ Asia         3786.      NA       NA  (((32.73178 35.14003, 32.9195~
 ## # ... with 2 more rows
 ```
 
@@ -450,16 +460,16 @@ world %&gt;% mutate(pop_dens = (pop / area_km2))
 ## Simple feature collection with 177 features and 4 fields
 ## Geometry type: MULTIPOLYGON
 ## Dimension:     XY
-## Bounding box:  xmin: -180 ymin: -90 xmax: 180 ymax: 83.64513
+## Bounding box:  xmin: -180 ymin: -89.9 xmax: 180 ymax: 83.64513
 ## Geodetic CRS:  WGS 84
 ## # A tibble: 177 x 5
 ##   name_long   pop_dens      pop area_km2                                    geom
 ##   &lt;chr&gt;          &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;                      &lt;MULTIPOLYGON [°]&gt;
-## 1 Fiji           45.9    8.86e5   1.93e4 (((180 -16.06713, 180 -16.55522, 179.3~
-## 2 Tanzania       56.0    5.22e7   9.33e5 (((33.90371 -0.95, 34.07262 -1.05982, ~
-## 3 Western Sa~    NA     NA        9.63e4 (((-8.66559 27.65643, -8.665124 27.589~
-## 4 Canada          3.54   3.55e7   1.00e7 (((-122.84 49, -122.9742 49.00254, -12~
-## 5 United Sta~    33.5    3.19e8   9.51e6 (((-122.84 49, -120 49, -117.0312 49, ~
+## 1 Fiji           45.9    8.86e5   1.93e4 (((-180 -16.55522, -179.9174 -16.50178~
+## 2 Tanzania       56.0    5.22e7   9.33e5 (((33.90371 -0.95, 31.86617 -1.02736, ~
+## 3 Western Sa~    NA     NA        9.63e4 (((-8.66559 27.65643, -8.817828 27.656~
+## 4 Canada          3.54   3.55e7   1.00e7 (((-132.71 54.04001, -133.18 54.16998,~
+## 5 United Sta~    33.5    3.19e8   9.51e6 (((-171.7317 63.78252, -171.7911 63.40~
 ## # ... with 172 more rows
 ```
 
@@ -480,7 +490,7 @@ states %&gt;%
   plot()
 ```
 
-&lt;img src="simple_features_files/figure-html/unnamed-chunk-24-1.png" width="504" style="display: block; margin: auto;" /&gt;
+&lt;img src="simple_features_files/figure-html/unnamed-chunk-23-1.png" width="504" style="display: block; margin: auto;" /&gt;
 
 ]
 
@@ -495,7 +505,7 @@ states %&gt;%
   plot()
 ```
 
-&lt;img src="simple_features_files/figure-html/unnamed-chunk-26-1.png" width="504" style="display: block; margin: auto;" /&gt;
+&lt;img src="simple_features_files/figure-html/unnamed-chunk-25-1.png" width="504" style="display: block; margin: auto;" /&gt;
 
 ]
 
@@ -507,16 +517,21 @@ states %&gt;%
 
 ```r
 states %&gt;% 
-  select(NAME, REGION, AREA, ttl__15) %&gt;% 
+  select(NAME, REGION, AREA, total_pop_15) %&gt;% 
   group_by(REGION) %&gt;% 
-  summarize(pop = sum(ttl__15),
+  summarize(pop = sum(total_pop_15),
             n_states = n()) %&gt;%
   st_drop_geometry()
 ```
 
 ```
-## Error: Can't subset columns that don't exist.
-## x Column `ttl__15` doesn't exist.
+## # A tibble: 4 x 3
+##   REGION         pop n_states
+## * &lt;fct&gt;        &lt;dbl&gt;    &lt;int&gt;
+## 1 Norteast  55989520        9
+## 2 Midwest   67546398       12
+## 3 South    118575377       17
+## 4 West      72264052       11
 ```
 
 
@@ -528,25 +543,26 @@ states %&gt;%
 ```r
 world_coffee &lt;- world %&gt;% left_join(coffee_data)
 
-select(world_coffee, name_long, coffee_production_2017)
+world_coffee %&gt;% select(name_long, coffee_production_2017)
 ```
 
 ```
 ## Simple feature collection with 177 features and 2 fields
 ## Geometry type: MULTIPOLYGON
 ## Dimension:     XY
-## Bounding box:  xmin: -180 ymin: -90 xmax: 180 ymax: 83.64513
+## Bounding box:  xmin: -180 ymin: -89.9 xmax: 180 ymax: 83.64513
 ## Geodetic CRS:  WGS 84
 ## # A tibble: 177 x 3
 ##   name_long    coffee_production~                                           geom
 ##   &lt;chr&gt;                     &lt;int&gt;                             &lt;MULTIPOLYGON [°]&gt;
-## 1 Fiji                         NA (((180 -16.06713, 180 -16.55522, 179.3641 -16~
-## 2 Tanzania                     66 (((33.90371 -0.95, 34.07262 -1.05982, 37.6986~
-## 3 Western Sah~                 NA (((-8.66559 27.65643, -8.665124 27.58948, -8.~
-## 4 Canada                       NA (((-122.84 49, -122.9742 49.00254, -124.9102 ~
-## 5 United Stat~                 NA (((-122.84 49, -120 49, -117.0312 49, -116.04~
+## 1 Fiji                         NA (((-180 -16.55522, -179.9174 -16.50178, -179.~
+## 2 Tanzania                     66 (((33.90371 -0.95, 31.86617 -1.02736, 30.7698~
+## 3 Western Sah~                 NA (((-8.66559 27.65643, -8.817828 27.65643, -8.~
+## 4 Canada                       NA (((-132.71 54.04001, -133.18 54.16998, -133.2~
+## 5 United Stat~                 NA (((-171.7317 63.78252, -171.7911 63.40585, -1~
 ## # ... with 172 more rows
 ```
+
 
 
 ---
@@ -558,7 +574,8 @@ select(world_coffee, name_long, coffee_production_2017)
 plot(world_coffee["coffee_production_2017"], pal = viridis)
 ```
 
-&lt;img src="simple_features_files/figure-html/unnamed-chunk-30-1.png" width="75%" style="display: block; margin: auto;" /&gt;
+&lt;img src="simple_features_files/figure-html/unnamed-chunk-29-1.png" width="900" style="display: block; margin: auto;" /&gt;
+
 
 
 ---
@@ -569,23 +586,9 @@ plot(world_coffee["coffee_production_2017"], pal = viridis)
 ```r
 state_data &lt;- states %&gt;% left_join(us_states_df, by = c("NAME" = "state"))
 
-select(state_data, NAME, median_income_15)
+state_data %&gt;% select(NAME, median_income_15)
 ```
 
-```
-## Simple feature collection with 49 features and 2 fields
-## Geometry type: MULTIPOLYGON
-## Dimension:     XY
-## Bounding box:  xmin: -124.7042 ymin: 24.55868 xmax: -66.9824 ymax: 49.38436
-## Geodetic CRS:  NAD83
-## First 5 features:
-##          NAME median_income_15                       geometry
-## 1     Alabama            22890 MULTIPOLYGON (((-88.20006 3...
-## 2     Arizona            26156 MULTIPOLYGON (((-114.7196 3...
-## 3    Colorado            30752 MULTIPOLYGON (((-109.0501 4...
-## 4 Connecticut            33226 MULTIPOLYGON (((-73.48731 4...
-## 5     Florida            24654 MULTIPOLYGON (((-81.81169 2...
-```
 
 
 ---
@@ -594,10 +597,14 @@ select(state_data, NAME, median_income_15)
 
 
 ```r
-plot(state_data["median_income_15"])
+plot(state_data["median_income_15"], pal = viridis)
 ```
 
-&lt;img src="simple_features_files/figure-html/unnamed-chunk-33-1.png" width="75%" style="display: block; margin: auto;" /&gt;
+
+```
+## Error in plot(state_data["median_income_15"], pal = viridis, border = "gray75", : object 'state_data' not found
+```
+
 
 
 ---
@@ -614,7 +621,7 @@ rand_ohs &lt;- states %&gt;%
   st_sf()
 ```
 
-&lt;img src="simple_features_files/figure-html/unnamed-chunk-35-1.png" width="504" style="display: block; margin: auto;" /&gt;
+&lt;img src="simple_features_files/figure-html/unnamed-chunk-34-1.png" width="504" style="display: block; margin: auto;" /&gt;
 
 ]
 
@@ -631,7 +638,7 @@ westers &lt;- rand_ohs %&gt;%
   st_filter(the_west, .predicate = st_intersects)
 ```
 
-&lt;img src="simple_features_files/figure-html/unnamed-chunk-37-1.png" width="504" style="display: block; margin: auto;" /&gt;
+&lt;img src="simple_features_files/figure-html/unnamed-chunk-36-1.png" width="504" style="display: block; margin: auto;" /&gt;
 
 ]
 
@@ -650,7 +657,7 @@ goats &lt;- rand_ohs %&gt;%
             dist = 500000)
 ```
 
-&lt;img src="simple_features_files/figure-html/unnamed-chunk-39-1.png" width="504" style="display: block; margin: auto;" /&gt;
+&lt;img src="simple_features_files/figure-html/unnamed-chunk-38-1.png" width="504" style="display: block; margin: auto;" /&gt;
 
 ]
 
@@ -669,7 +676,7 @@ easters &lt;- rand_ohs %&gt;%
             .predicate = st_not_intersects)
 ```
 
-&lt;img src="simple_features_files/figure-html/unnamed-chunk-42-1.png" width="504" style="display: block; margin: auto;" /&gt;
+&lt;img src="simple_features_files/figure-html/unnamed-chunk-41-1.png" width="504" style="display: block; margin: auto;" /&gt;
 
 ]
 
@@ -686,15 +693,15 @@ rand_ohs %&gt;% st_join(states["NAME"])
 ## Simple feature collection with 100 features and 1 field
 ## Geometry type: POINT
 ## Dimension:     XY
-## Bounding box:  xmin: -122.0245 ymin: 27.08742 xmax: -69.12078 ymax: 48.96157
+## Bounding box:  xmin: -123.7602 ymin: 27.13229 xmax: -68.03758 ymax: 48.17773
 ## Geodetic CRS:  NAD83
 ## First 5 features:
-##             NAME                   geometry
-## 1        Arizona  POINT (-113.6579 34.0621)
-## 2          Texas POINT (-98.41974 27.08742)
-## 3        Indiana POINT (-85.74504 41.55717)
-## 4 North Carolina POINT (-78.08584 33.94511)
-## 5          Texas POINT (-101.8519 33.70574)
+##         NAME                   geometry
+## 1      Texas  POINT (-105.3442 31.7476)
+## 2     Oregon POINT (-123.1356 43.49242)
+## 3 California  POINT (-122.7648 40.4029)
+## 4 California POINT (-117.9891 36.53288)
+## 5  Minnesota POINT (-93.92002 45.65381)
 ```
 
 
@@ -704,30 +711,24 @@ rand_ohs %&gt;% st_join(states["NAME"])
 
 
 ```r
-rand_ohs %&gt;% st_join(states,
+rand_ohs %&gt;% st_join(states["NAME"],
                      join = st_is_within_distance,
                      dist = 1000000)
 ```
 
 ```
-## Simple feature collection with 1753 features and 6 fields
+## Simple feature collection with 1938 features and 1 field
 ## Geometry type: POINT
 ## Dimension:     XY
-## Bounding box:  xmin: -122.0245 ymin: 27.08742 xmax: -69.12078 ymax: 48.96157
+## Bounding box:  xmin: -123.7602 ymin: 27.13229 xmax: -68.03758 ymax: 48.17773
 ## Geodetic CRS:  NAD83
 ## First 5 features:
-##   GEOID     NAME REGION            AREA total_pop_10 total_pop_15
-## 1    04  Arizona   West 295281.3 [km^2]      6246816      6641928
-## 2    08 Colorado   West 269573.1 [km^2]      4887061      5278906
-## 3    16    Idaho   West 216512.7 [km^2]      1526797      1616547
-## 4    32   Nevada   West 286363.7 [km^2]      2633331      2798636
-## 5    48    Texas  South 687714.3 [km^2]     24311891     26538614
-##                    geometry
-## 1 POINT (-113.6579 34.0621)
-## 2 POINT (-113.6579 34.0621)
-## 3 POINT (-113.6579 34.0621)
-## 4 POINT (-113.6579 34.0621)
-## 5 POINT (-113.6579 34.0621)
+##       NAME                  geometry
+## 1  Arizona POINT (-105.3442 31.7476)
+## 2 Colorado POINT (-105.3442 31.7476)
+## 3   Kansas POINT (-105.3442 31.7476)
+## 4   Nevada POINT (-105.3442 31.7476)
+## 5 Oklahoma POINT (-105.3442 31.7476)
 ```
 
 
@@ -738,15 +739,27 @@ rand_ohs %&gt;% st_join(states,
 
 ```r
 rand_ohs %&gt;% 
-  st_join(states[, c("REGION", "ttl__15")]) %&gt;% 
+  st_join(states[, c("REGION", "total_pop_15")]) %&gt;% 
   group_by(REGION) %&gt;% 
-  summarize(pop = sum(ttl__15)) %&gt;% 
-  plot(pch = 19, cex = 2)
+  summarize(pop = sum(total_pop_15))
 ```
 
 ```
-## Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'plot': undefined columns selected
+## Simple feature collection with 4 features and 2 fields
+## Geometry type: MULTIPOINT
+## Dimension:     XY
+## Bounding box:  xmin: -123.7602 ymin: 27.13229 xmax: -68.03758 ymax: 48.17773
+## Geodetic CRS:  NAD83
+## # A tibble: 4 x 3
+##   REGION        pop                                                     geometry
+##   &lt;fct&gt;       &lt;dbl&gt;                                             &lt;MULTIPOINT [°]&gt;
+## 1 Norteast   6.56e7 ((-69.00238 44.7526), (-68.03758 47.13267), (-75.14356 40.6~
+## 2 Midwest    1.36e8 ((-93.92002 45.65381), (-97.12244 45.80713), (-98.26073 45.~
+## 3 South      3.39e8 ((-93.57615 30.91295), (-95.85459 33.89719), (-98.04236 32.~
+## 4 West       3.43e8 ((-106.0721 44.6002), (-112.1727 44.4493), (-114.4826 47.80~
 ```
+
+&lt;img src="simple_features_files/figure-html/unnamed-chunk-45-1.png" width="75%" style="display: block; margin: auto;" /&gt;
 
 
 
@@ -763,12 +776,12 @@ rand_ohs %&gt;%
 
 ```
 ## Units: [m]
-##           [,1]    [,2]    [,3]      [,4]      [,5]
-## [1,]       0.0 2715278 3116934  487921.6  531356.3
-## [2,] 2715277.6       0 1149168 2872576.3 2326744.6
-## [3,] 3116933.7 1149168       0 3085991.4 2613631.8
-## [4,]  487921.6 2872576 3085991       0.0  548843.8
-## [5,]  531356.3 2326745 2613632  548843.8       0.0
+##           [,1]      [,2]    [,3]    [,4]    [,5]
+## [1,]       0.0  608774.3 2024939 2065891 3373276
+## [2,]  608774.3       0.0 1487933 1544159 2832835
+## [3,] 2024939.3 1487933.2       0  100978 1349540
+## [4,] 2065891.4 1544158.6  100978       0 1308772
+## [5,] 3373276.3 2832835.2 1349540 1308772       0
 ```
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>

@@ -56,7 +56,7 @@ output:
 
 ```{r, eval = FALSE}
 
-install.packages(c("dplyr", "here", "raster", "spData", "sf", "viridis"))
+install.packages(c("dplyr", "here", "spData", "sf", "viridis"))
 
 install.packages("spDataLarge", 
                  repos = "https://nowosad.github.io/drat/", 
@@ -68,18 +68,11 @@ install.packages("spDataLarge",
 
 ```{r}
 
-library(raster)
 library(spData)
 library(spDataLarge)
 library(sf)
 library(viridis)
 library(dplyr)
-
-```
-
-```{r, echo = FALSE}
-
-select <- dplyr::select
 
 ```
 
@@ -220,7 +213,12 @@ plot(st_geometry(world), col = "gray90")
 par(mar = rep(1, 4), 
     oma = rep(0, 4))
 
-plot(st_geometry(world), col = "gray90")
+plot(world["area_km2"], 
+     col = "gray90",
+     border = "gray75", 
+     lwd = 1.9, 
+     key.pos = NULL,
+     main = NULL)
 
 ```
 
@@ -252,11 +250,12 @@ st_geometry_type(indonesia)
 
 .pull-left[
 
-```{r}
+```{r, xclass = "small"}
 
 st_crs(world)
 
 ```
+
 
 ]
 
@@ -462,9 +461,9 @@ states %>%
 ```{r}
 
 states %>% 
-  select(NAME, REGION, AREA, ttl__15) %>% 
+  select(NAME, REGION, AREA, total_pop_15) %>% 
   group_by(REGION) %>% 
-  summarize(pop = sum(ttl__15),
+  summarize(pop = sum(total_pop_15),
             n_states = n()) %>%
   st_drop_geometry()
   
@@ -479,9 +478,10 @@ states %>%
 
 world_coffee <- world %>% left_join(coffee_data)
 
-select(world_coffee, name_long, coffee_production_2017)
+world_coffee %>% select(name_long, coffee_production_2017)
 
 ```
+
 
 
 ---
@@ -494,27 +494,20 @@ plot(world_coffee["coffee_production_2017"], pal = viridis)
 
 ```
 
-```{r, echo = FALSE, fig.asp = 0.4, fig.width = 900/72, out.width = "75%"}
+```{r, echo = FALSE, fig.asp = 0.5, fig.width = 900/72}
+
+par(mar = rep(1, 4), 
+    oma = rep(0, 4))
 
 plot(world_coffee["coffee_production_2017"], 
-     key.pos = NULL, 
-     main = NULL, 
-     pal = viridis)
+     pal = viridis,
+     border = "gray75", 
+     lwd = 1.9, 
+     key.pos = NULL,
+     main = NULL)
 
 ```
 
-
----
-
-## `left_join()` tables
-
-```{r}
-
-state_data <- states %>% left_join(us_states_df, by = c("NAME" = "state"))
-
-select(state_data, NAME, median_income_15)
-
-```
 
 
 ---
@@ -523,15 +516,35 @@ select(state_data, NAME, median_income_15)
 
 ```{r, eval = FALSE}
 
-plot(state_data["median_income_15"])
+state_data <- states %>% left_join(us_states_df, by = c("NAME" = "state"))
+
+state_data %>% select(NAME, median_income_15)
+
+```
+
+
+
+---
+
+## `left_join()` tables
+
+```{r, eval = FALSE}
+
+plot(state_data["median_income_15"], pal = viridis)
 
 ```
 
 ```{r, echo = FALSE, fig.asp = 0.4, fig.width = 900/72, out.width = "75%"}
 
-plot(state_data["median_income_15"], key.pos = NULL, main = NULL)
+plot(state_data["median_income_15"], 
+     pal = viridis,
+     border = "gray75", 
+     lwd = 1.9, 
+     key.pos = NULL, 
+     main = NULL)
 
 ```
+
 
 
 ---
@@ -703,7 +716,7 @@ rand_ohs %>% st_join(states["NAME"])
 
 ```{r}
 
-rand_ohs %>% st_join(states,
+rand_ohs %>% st_join(states["NAME"],
                      join = st_is_within_distance,
                      dist = 1000000)
 
@@ -717,10 +730,24 @@ rand_ohs %>% st_join(states,
 ```{r, fig.asp = 0.4, fig.width = 900/72, out.width = "75%"}
 
 rand_ohs %>% 
-  st_join(states[, c("REGION", "ttl__15")]) %>% 
+  st_join(states[, c("REGION", "total_pop_15")]) %>% 
   group_by(REGION) %>% 
-  summarize(pop = sum(ttl__15)) %>% 
-  plot(pch = 19, cex = 2)
+  summarize(pop = sum(total_pop_15))
+
+```
+
+```{r, echo = FALSE, fig.asp = 0.4, fig.width = 900/72, out.width = "75%"}
+
+ruh_roh <- rand_ohs %>% 
+  st_join(states[, c("REGION", "total_pop_15")]) %>% 
+  group_by(REGION) %>% 
+  summarize(pop = sum(total_pop_15))
+
+plot(ruh_roh["pop"], 
+     pch = 19,
+     cex = 2,
+     key.pos = NULL, 
+     main = NULL)
 
 ```
 
