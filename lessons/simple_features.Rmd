@@ -174,7 +174,7 @@ Similar to `data.frame(col1 = ..., col2 = ...)`, but with a geometry column.
 
 ---
 
-## Plot Attribute
+## Plot __Attribute__
 
 ```{r, eval = FALSE}
 
@@ -200,7 +200,7 @@ plot(world["area_km2"],
 
 ---
 
-## Plot Geometry
+## Plot __Geometry__
 
 ```{r, eval = FALSE}
 
@@ -352,14 +352,20 @@ class: bg_pipe middle
 
 
 ---
+background-image: url(figures/sticky_geometry_0.png)
+background-size: contain
 
-## `select()` columns
 
-```{r}
+---
+background-image: url(figures/sticky_geometry_1.png)
+background-size: contain
+count: false
 
-world %>% select(name_long)
 
-```
+---
+background-image: url(figures/sticky_geometry_2.png)
+background-size: contain
+count: false
 
 
 
@@ -514,7 +520,7 @@ plot(world_coffee["coffee_production_2017"],
 
 ## `left_join()` tables
 
-```{r, eval = FALSE}
+```{r}
 
 state_data <- states %>% left_join(us_states_df, by = c("NAME" = "state"))
 
@@ -535,6 +541,9 @@ plot(state_data["median_income_15"], pal = viridis)
 ```
 
 ```{r, echo = FALSE, fig.asp = 0.4, fig.width = 900/72, out.width = "75%"}
+
+par(mar = rep(1, 4), 
+    oma = rep(0, 4))
 
 plot(state_data["median_income_15"], 
      pal = viridis,
@@ -564,6 +573,9 @@ rand_ohs <- states %>%
 
 ```{r, echo = FALSE}
 
+par(mar = rep(1, 4), 
+    oma = rep(0, 4))
+
 plot(st_geometry(states))
 
 plot(rand_ohs, 
@@ -591,6 +603,9 @@ westers <- rand_ohs %>%
 ```
 
 ```{r, echo = FALSE}
+
+par(mar = rep(1, 4), 
+    oma = rep(0, 4))
 
 plot(st_geometry(states))
 
@@ -628,6 +643,9 @@ goats <- rand_ohs %>%
 ```
 
 ```{r, echo = FALSE}
+
+par(mar = rep(1, 4), 
+    oma = rep(0, 4))
 
 plot(st_geometry(states))
 
@@ -680,6 +698,9 @@ easters <- rand_ohs %>%
 
 ```{r, echo = FALSE}
 
+par(mar = rep(1, 4), 
+    oma = rep(0, 4))
+
 plot(st_geometry(states))
 
 plot(rand_ohs, 
@@ -723,31 +744,57 @@ rand_ohs %>% st_join(states["NAME"],
 ```
 
 
+
 ---
 
 ## `st_join()` geometries
 
-```{r, fig.asp = 0.4, fig.width = 900/72, out.width = "75%"}
+```{r, eval = FALSE}
 
-rand_ohs %>% 
-  st_join(states[, c("REGION", "total_pop_15")]) %>% 
-  group_by(REGION) %>% 
-  summarize(pop = sum(total_pop_15))
+rand_ohs %>% st_join(states[, "REGION"])
 
 ```
 
 ```{r, echo = FALSE, fig.asp = 0.4, fig.width = 900/72, out.width = "75%"}
 
-ruh_roh <- rand_ohs %>% 
+par(mar = rep(1, 4), 
+    oma = rep(0, 4))
+
+bob <- state_data %>% 
+  group_by(REGION) %>% 
+  summarize(mean_area = mean(AREA))
+
+ruh_roh <- rand_ohs %>% st_join(states[, "REGION"])
+
+plot(st_geometry(bob),
+     col = "transparent",
+     border = "black",
+     lwd = 1.9, 
+     key.pos = NULL, 
+     main = NULL,
+     expandBB = rep(0, 4))
+
+plot(ruh_roh["REGION"],
+     pch = 19,
+     cex = 2,
+     key.pos = NULL,
+     main = NULL,
+     add = TRUE)
+
+```
+
+
+
+---
+
+## `st_join()` geometries
+
+```{r}
+
+rand_ohs %>% 
   st_join(states[, c("REGION", "total_pop_15")]) %>% 
   group_by(REGION) %>% 
   summarize(pop = sum(total_pop_15))
-
-plot(ruh_roh["pop"], 
-     pch = 19,
-     cex = 2,
-     key.pos = NULL, 
-     main = NULL)
 
 ```
 
