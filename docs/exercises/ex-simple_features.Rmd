@@ -1,0 +1,198 @@
+---
+title: "Exercise: Simple Features"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE,
+                      error = TRUE,
+                      collapse = TRUE, # code and output in same block
+                      fig.align = "center",
+                      fig.width = 500/72,
+                      fig.retina = 2,
+                      fig.asp = 0.7)
+```
+
+
+
+## Setup
+
+Load packages: `dplyr`, `sf`, `spData`, and `spDataLarge`.
+
+```{r}
+
+```
+
+
+
+## Simple feature overview
+
+Data sets are "lazy" loaded. When you load the package, the datasets are kinda just there in the background of your R session. What variables (or attribute columns) are included in this simple feature? Use `names()`.
+
+```{r}
+
+```
+
+Use `nrow()` to find out how many features (or countries) this data set includes?
+
+```{r}
+
+```
+
+Use `st_geometry_type()` to identify the geometry types included in this data set. By default, this will return the geometry type for each individual feature, which would be helpful if there were multiple geometry types. However, in this case, they are all represented the same way, so set `by_geometry = FALSE`.  
+
+```{r}
+
+
+```
+
+Note: when there are multiple types, I like to use `x %>% st_geometry_type() %>% unique()` (or `unique(st_geometry_type(x))`) just to get a sense of what kind of data I am working with.
+
+As an added bonus, all the things you can do with a regular old data.frame, you can do with an `sf` object, too. I mean, it is just a table! For instance, you can extract a variable with the `$` operator. 
+
+```{r}
+
+unique(world$continent)
+
+```
+
+Try it yourself! What are the unique subregions of the world?
+
+```{r}
+
+```
+
+
+### From the ground up
+
+Now, try creating an sf object from scratch: 
+
+* Start by making two simple feature geometries (`sfg`) with `st_point()`.
+
+```{r}
+
+```
+
+* Add those geometries to a simple feature column (`sfc`) with `st_sfc()`. Make sure to specify its `crs`!
+
+```{r}
+
+```
+
+* Add that column as a geometry column to a simple feature (`sf`) with `st_sf()`. 
+
+```{r}
+
+```
+
+
+
+## Basic plotting
+
+Plot the `world` _geometry_.
+
+```{r}
+
+```
+
+Now plot the values of a `world` attribute. 
+
+```{r}
+
+```
+
+
+
+## Reading and writing
+
+Use `write_sf()` to write the `world` object as a shapefile.
+
+```{r}
+
+```
+
+Use `read_sf()` to read that shapefile back into R.
+
+```{r}
+
+```
+
+Now, try reading and writing to a geopackage database. First, let's specify a name and location for our geopackage. Since we'll be using this several times, best to save it to its own R object. 
+
+```{r}
+
+### specify the directory where you want to put the geopackage ###
+location <- " " 
+
+gpkg <- file.path(location, "world.gpkg") 
+
+gpkg
+
+```
+
+Use `dplyr::filter()` to collect the countries of North and South America into separate objects. Below, you can see code that collects the countries of Asia into an object called `asia`.
+
+```{r}
+
+asia <- filter(world, continent == "Asia")
+
+write_sf(
+  asia,
+  dsn = gpkg, 
+  layer = "asia"
+)
+
+```
+
+Now, try North America. Simply filling in the missing code.
+
+```{r}
+
+n_america <- filter(world, ) ### <---- add filter condition ###
+
+write_sf(
+  n_america,
+  dsn = gpkg,
+  layer = ""  ### <---- add name for layer ####
+)
+
+```
+
+Now, try South America. From scratch!
+
+```{r}
+
+```
+
+Now, try reading layers back out of the geopackage.
+
+```{r}
+
+```
+
+
+
+## Projecting
+
+Use `st_crs()` to identify the crs of `world` object, printed as Well-Known Text. Use the `$` on the crs object to extract its _epsg_ code and its _proj4string_.
+
+```{r}
+
+```
+
+Extract New Zealand from the `world` object using `dplyr::filter()`. Call it `nz` and plot its geometry. Then create a new object called `nz_moll`, using `st_transform()` to re-project the `nz` object to the Mollweide projection ("+proj=moll"). Plot the geometry of the result.
+
+```{r}
+
+```
+
+Use `st_transform()` to re-project the `world` object to the transverse Mercator projection ("+proj=tmerc") and plot the result.
+
+```{r}
+
+```
+
+
+

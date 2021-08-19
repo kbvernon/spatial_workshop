@@ -78,18 +78,14 @@ library(dplyr)
 
 ```{r, echo = FALSE}
 
-data("world", package = "spData")
-
-world <- subset(world, select = c(name_long, continent, area_km2, pop, gdpPercap))
-
-data("us_states", package = "spData")
-
-states <- us_states
-
-data("coffee_data", package = "spData")
+data("world",        package = "spData")
+data("us_states",    package = "spData")
+data("coffee_data",  package = "spData")
 data("us_states_df", package = "spData")
 
-coffee_data <- coffee_data
+world        <- subset(world, select = c(name_long, continent, area_km2, pop, gdpPercap))
+states       <- us_states
+coffee_data  <- coffee_data
 us_states_df <- us_states_df
 
 ```
@@ -238,6 +234,120 @@ indonesia <- subset(world, name_long == "Indonesia")
 
 st_geometry_type(indonesia)
   
+```
+
+]
+
+
+
+---
+background-image: url(figures/read_sf-blank.png)
+background-size: contain
+
+
+---
+background-image: url(figures/read_sf-label.png)
+background-size: contain
+count: false
+
+
+---
+background-image: url(figures/write_sf-blank.png)
+background-size: contain
+
+
+---
+background-image: url(figures/write_sf-label.png)
+background-size: contain
+count: false
+
+
+
+---
+
+## Read and write to database
+
+.pull-lleft[
+
+```{r, echo = FALSE}
+
+image_link("figures/geopkg_logo.png", url = "https://www.geopackage.org/")
+
+```
+
+.center[ \* _An [OGC](https://www.ogc.org/) product._ ]
+
+]
+
+.pull-lright[
+
+```{r}
+
+st_layers("data/utah.gpkg")
+
+```
+
+]
+
+
+---
+
+## Read and write to database
+
+```{r}
+
+ut_parks <- read_sf(dsn = "data/utah.gpkg", layer = "nps_parks")
+
+```
+
+```{r, echo = FALSE}
+
+ut_parks
+
+```
+
+
+
+---
+
+## Read and write to database
+
+.pull-lleft[
+
+```{r, echo = FALSE}
+
+image_link("figures/geopkg_logo.png", url = "https://www.geopackage.org/")
+
+```
+
+.center[ \* _An [OGC](https://www.ogc.org/) product._ ]
+
+]
+
+.pull-lright[
+
+```{r, eval = FALSE}
+
+write_sf(ut_parks,
+         dsn = "data/utah.gpkg", 
+         layer = "nps_parks_2")
+
+st_layers("data/utah.gpkg")
+
+```
+
+```{r, echo = FALSE}
+
+fn <- tempfile(fileext = ".gpkg")
+
+invisible(file.copy(from = "data/utah.gpkg", to = fn))
+
+write_sf(ut_parks,
+         dsn = fn, 
+         layer = "nps_parks_2")
+
+st_layers(fn)
+
 ```
 
 ]

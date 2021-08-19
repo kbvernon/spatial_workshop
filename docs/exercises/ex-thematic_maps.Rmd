@@ -1,0 +1,18 @@
+---
+title: "Exercise: Thematic Maps"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE,
+                      error = TRUE,
+                      collapse = TRUE, # code and output in same block
+                      fig.align = "center",
+                      fig.width = 500/72,
+                      fig.retina = 2,
+                      fig.asp = 0.7)
+```
+
+## Setup

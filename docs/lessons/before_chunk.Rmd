@@ -206,3 +206,18 @@ xaringanExtra::use_clipboard()
 xaringanExtra::use_progress_bar(color = "#CC0000", location = "top")
 ```
 
+```{r, echo = FALSE}
+
+# https://community.rstudio.com/t/how-to-add-a-hyperlink-to-an-image-created-by-knitr-include-graphics/99195
+
+image_link <- function(image, url, ...){
+  
+  htmltools::a(
+    href=url,
+    htmltools::img(src=image,...)
+  )
+  
+}
+
+```
+
